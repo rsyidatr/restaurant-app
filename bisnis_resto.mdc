@@ -1,0 +1,285 @@
+
+# 📁 Struktur Folder & Role Aplikasi Restoran Laravel 10 + PostgreSQL + TailwindCSS
+
+Aplikasi restoran ini memiliki 3 role utama: **Pelanggan**, **Pelayan** (gabungan admin + waiter), dan **Koki (Dapur)**. Setiap role memiliki folder dan controller terpisah agar project modular, scalable, dan mudah dikembangkan.
+
+---
+
+## 🧩 Struktur Folder Laravel (Role-based & Modular)
+
+```
+app/
+├── Http/
+│   ├── Controllers/
+│   │   ├── Customer/
+│   │   │   ├── MenuController.php
+│   │   │   ├── CartController.php
+│   │   │   ├── CheckoutController.php
+│   │   │   └── ReservationController.php
+│   │   ├── Waiter/
+│   │   │   ├── OrderController.php
+│   │   │   ├── TableController.php
+│   │   │   ├── ReservationController.php
+│   │   │   └── MenuManagementController.php
+│   │   ├── Kitchen/
+│   │   │   ├── KitchenOrderController.php
+│   │   │   └── MenuAvailabilityController.php
+│   │   ├── Auth/
+│   │   │   ├── LoginController.php
+│   │   │   └── RegisterController.php
+│   │   └── ApiController.php
+
+├── Models/
+│   ├── User.php
+│   ├── MenuCategory.php
+│   ├── MenuItem.php
+│   ├── Table.php
+│   ├── Reservation.php
+│   ├── Order.php
+│   ├── OrderItem.php
+│   └── Payment.php
+
+resources/
+├── views/
+│   ├── layouts/
+│   ├── customer/
+│   │   ├── home.blade.php
+│   │   ├── cart.blade.php
+│   │   ├── checkout.blade.php
+│   │   └── reservation.blade.php
+│   ├── waiter/
+│   │   ├── dashboard.blade.php
+│   │   ├── manage-orders.blade.php
+│   │   ├── manage-menu.blade.php
+│   │   └── reservations.blade.php
+│   ├── kitchen/
+│   │   ├── orders.blade.php
+│   │   └── availability.blade.php
+│   └── auth/
+│       ├── login.blade.php
+│       └── register.blade.php
+
+routes/
+├── web.php
+├── api.php
+├── customer.php       # optional per-role route file
+├── waiter.php
+├── kitchen.php
+
+database/
+├── migrations/
+├── seeders/
+├── factories/
+
+public/
+├── css/
+│   └── app.css
+├── js/
+│   └── app.js
+
+tailwind.config.js
+vite.config.js
+```
+
+---
+
+## 👥 Pembagian Role & Fungsinya
+
+### 🔹 Pelanggan (`Customer`)
+📁 Folder: `Controllers/Customer/`  
+🧾 Fitur:
+- Melihat dan mencari menu
+- Menambahkan item ke keranjang
+- Checkout dan bayar pesanan
+- Reservasi meja (dine-in)
+- Lacak status pesanan
+
+### 🔸 Pelayan (`Waiter`)
+📁 Folder: `Controllers/Waiter/`  
+🧾 Fitur:
+- Melihat dan memproses semua pesanan
+- Kelola reservasi
+- Konfirmasi pesanan dine-in telah diterima
+- Kelola status meja
+- Kelola kategori dan item menu
+
+### 🔺 Koki / Dapur (`Kitchen`)
+📁 Folder: `Controllers/Kitchen/`  
+🧾 Fitur:
+- Menerima dan melihat pesanan masuk
+- Update status makanan (diproses, siap)
+- Atur ketersediaan makanan: `available/habis`
+
+---
+
+## 🛡️ Middleware Role-based (Disarankan)
+
+Gunakan middleware seperti ini:
+```php
+// app/Http/Middleware/RoleMiddleware.php
+
+if ($request->user()->role !== $role) {
+    abort(403);
+}
+```
+
+Registrasi di `Kernel.php`:
+```php
+'role' => \App\Http\Middleware\RoleMiddleware::class,
+```
+
+Dan gunakan di route:
+```php
+Route::middleware(['auth', 'role:waiter'])->group(function () {
+    // route untuk pelayan
+});
+```
+
+# 📦 Business Rules - Aplikasi Restoran Laravel + PostgreSQL + TailwindCSS
+
+## 🧩 FASE 1: FITUR UTAMA APLIKASI
+
+### ✅ Fitur Pelanggan
+- Melihat menu lengkap beserta kategori
+- Menambahkan item ke **keranjang**
+- Checkout pesanan dari keranjang
+- Memilih jenis pesanan: dine-in, take-away, delivery
+- **Dine-in** menyertakan fitur **reservasi meja**
+- Melakukan pembayaran (tunai atau metode lain)
+- Melacak status pesanan secara real-time
+- Dine-in: Konfirmasi pesanan diterima dilakukan oleh **pelayan**
+
+### ✅ Fitur Pelayan (gabungan Admin + Waiter)
+- Login ke dashboard
+- Kelola kategori dan item menu
+- Kelola pengguna dan peran
+- Lihat & kelola pesanan dari pelanggan
+- Kelola reservasi meja dine-in
+- Konfirmasi pesanan telah diterima pelanggan dine-in
+- Kelola status meja (available, reserved, occupied, cleaning)
+
+### ✅ Fitur Koki (Dapur)
+- Menerima notifikasi pesanan baru
+- Update status makanan: sedang dimasak, siap saji
+- Update status menu: **available / habis**
+
+
+## 🔁 FASE 2: ALUR BISNIS
+
+### 🔄 Alur Pelanggan
+1. Masuk ke aplikasi
+2. Melihat menu dan menambahkan item ke keranjang
+3. Masuk ke halaman checkout
+4. Memilih tipe pesanan:
+   - **Dine-in**: pilih dan reservasi meja
+   - **Take-away / Delivery**: isi kontak dan alamat
+5. Melakukan pembayaran
+6. Melacak status pesanan
+7. Pesanan diterima (untuk dine-in dikonfirmasi oleh pelayan)
+
+### 🔄 Alur Pelayan
+1. Login ke dashboard
+2. Lihat daftar pesanan
+3. Ubah status pesanan sesuai alur: `pending → processing → ready → completed`
+4. Konfirmasi pesanan dine-in sudah diterima oleh pelanggan
+5. Kelola daftar reservasi dan status meja
+
+### 🔄 Alur Dapur
+1. Menerima notifikasi pesanan baru
+2. Masak makanan dan update status
+3. Atur status ketersediaan makanan (available / habis)
+
+
+## 🧱 FASE 3: STRUKTUR DATABASE (PostgreSQL)
+
+### Tabel `users`
+- id, name, email, password
+- role: enum('pelayan', 'koki', 'pelanggan')
+
+### Tabel `menu_categories`
+- id, name, description
+
+### Tabel `menu_items`
+- id, category_id, name, description, price, image_url
+- is_available: boolean
+
+### Tabel `tables`
+- id, table_number, capacity
+- status: enum('available', 'reserved', 'occupied', 'cleaning')
+
+### Tabel `reservations`
+- id, user_id, table_id, reservation_time
+- status: enum('pending', 'confirmed', 'cancelled')
+
+### Tabel `orders`
+- id, user_id, table_id (nullable), order_type: enum('dine_in', 'take_away', 'delivery')
+- status: enum('pending', 'processing', 'ready', 'completed', 'cancelled')
+- payment_status: enum('pending', 'paid')
+- total_amount, order_date
+
+### Tabel `order_items`
+- id, order_id, menu_item_id, quantity, price, notes
+
+### Tabel `payments`
+- id, order_id, amount, payment_method, transaction_id (nullable), payment_date
+
+
+## 🔌 FASE 4: ENDPOINT API (Laravel 10)
+
+### 🔐 Autentikasi
+- `POST /api/register`
+- `POST /api/login`
+- `POST /api/logout`
+
+### 🧾 Manajemen Menu
+- `GET /api/menu-categories`
+- `POST /api/menu-categories`
+- `GET /api/menu-items`
+- `POST /api/menu-items`
+- `PUT /api/menu-items/{id}/availability` ← update status "available/habis"
+
+### 🛒 Keranjang & Checkout
+- `POST /api/cart/add`
+- `GET /api/cart`
+- `DELETE /api/cart/{item_id}`
+- `POST /api/checkout`
+
+### 🍽️ Reservasi Meja
+- `POST /api/reservations`
+- `GET /api/reservations`
+- `PUT /api/reservations/{id}/confirm`
+
+### 📦 Pemesanan
+- `GET /api/orders`
+- `POST /api/orders`
+- `PUT /api/orders/{id}`
+- `PUT /api/orders/{id}/confirm-received` ← oleh pelayan (dine-in)
+
+### 💵 Pembayaran
+- `POST /api/payments`
+- `GET /api/payments/{order_id}`
+
+
+## 🎨 FASE 5: UI TAILWINDCSS
+
+- Seluruh antarmuka pengguna menggunakan TailwindCSS
+- Contoh tombol:
+```html
+<button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
+  Checkout Sekarang
+</button>
+```
+- Layout fleksibel & responsif:
+```html
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <!-- Isi menu / keranjang / checkout -->
+</div>
+```
+
+
+## 📌 CATATAN TAMBAHAN
+- Role **admin dan pelayan digabung sebagai "pelayan"**
+- **Pelayan** memegang kontrol atas manajemen restoran
+- Fitur **reservasi dine-in** bersifat wajib sebelum checkout dine-in
+- Dapur bertanggung jawab atas **ketersediaan makanan** (available/habis)
+- Konfirmasi pesanan diterima dine-in dilakukan manual oleh **pelayan**
