@@ -1,6 +1,6 @@
-@extends('layouts.app')
+@extends('layouts.customer')
 
-@section('title', 'Warung Nusantara - Authentic Indonesian Cuisine')
+@section('title', 'Home - Restoran')
 
 @section('content')
     <!-- Hero Section -->
@@ -16,10 +16,10 @@
                 <h1 class="text-5xl font-light mb-4">Warung Nusantara</h1>
                 <p class="text-xl mb-8 text-gray-200">Nikmati kelezatan autentik masakan Indonesia dalam suasana yang nyaman dan hangat</p>
                 <div class="space-x-4">
-                    <a href="#menu" class="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-lg inline-block transition duration-300 transform hover:scale-105">
+                    <a href="{{ route('customer.menu') }}" class="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-lg inline-block transition duration-300 transform hover:scale-105">
                         Lihat Menu
                     </a>
-                    <a href="#reservation" class="bg-transparent border-2 border-white hover:bg-white hover:text-orange-600 text-white px-8 py-3 rounded-lg inline-block transition duration-300">
+                    <a href="{{ route('customer.reservation') }}" class="bg-transparent border-2 border-white hover:bg-white hover:text-orange-600 text-white px-8 py-3 rounded-lg inline-block transition duration-300">
                         Reservasi Meja
                     </a>
                 </div>
@@ -167,7 +167,7 @@
     </div>
 
     <!-- Lokasi dan Kontak Section -->
-    <div class="py-20 bg-amber-50">
+    <div id="contact" class="py-20 bg-amber-50">
         <div class="container mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
                 <!-- Map -->
@@ -238,49 +238,4 @@
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-orange-900 text-orange-100">
-        <div class="container mx-auto px-4 py-12">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <div>
-                    <h4 class="text-xl font-semibold mb-4">Warung Nusantara</h4>
-                    <p class="text-orange-200">Menyajikan masakan Indonesia autentik dengan cita rasa yang tak terlupakan.</p>
-                </div>
-                <div>
-                    <h4 class="text-xl font-semibold mb-4">Menu</h4>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="text-orange-200 hover:text-white transition">Makanan</a></li>
-                        <li><a href="#" class="text-orange-200 hover:text-white transition">Minuman</a></li>
-                        <li><a href="#" class="text-orange-200 hover:text-white transition">Dessert</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="text-xl font-semibold mb-4">Layanan</h4>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="text-orange-200 hover:text-white transition">Reservasi</a></li>
-                        <li><a href="#" class="text-orange-200 hover:text-white transition">Delivery</a></li>
-                        <li><a href="#" class="text-orange-200 hover:text-white transition">Take Away</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="text-xl font-semibold mb-4">Ikuti Kami</h4>
-                    <div class="flex space-x-4">
-                        <a href="#" class="text-orange-200 hover:text-white transition">
-                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"></path>
-                            </svg>
-                        </a>
-                        <a href="#" class="text-orange-200 hover:text-white transition">
-                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2c2.717 0 3.056.01 4.122.06 1.065.05 1.79.217 2.428.465.66.254 1.216.598 1.772 1.153a4.908 4.908 0 0 1 1.153 1.772c.247.637.415 1.363.465 2.428.047 1.066.06 1.405.06 4.122 0 2.717-.01 3.056-.06 4.122-.05 1.065-.218 1.79-.465 2.428a4.883 4.883 0 0 1-1.153 1.772 4.915 4.915 0 0 1-1.772 1.153c-.637.247-1.363.415-2.428.465-1.066.047-1.405.06-4.122.06-2.717 0-3.056-.01-4.122-.06-1.065-.05-1.79-.218-2.428-.465a4.89 4.89 0 0 1-1.772-1.153 4.904 4.904 0 0 1-1.153-1.772c-.248-.637-.415-1.363-.465-2.428C2.013 15.056 2 14.717 2 12c0-2.717.01-3.056.06-4.122.05-1.066.217-1.79.465-2.428a4.88 4.88 0 0 1 1.153-1.772A4.897 4.897 0 0 1 5.45 2.525c.638-.248 1.362-.415 2.428-.465C8.944 2.013 9.283 2 12 2zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm6.5-.25a1.25 1.25 0 1 0-2.5 0 1.25 1.25 0 0 0 2.5 0zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"></path>
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="border-t border-orange-800 mt-8 pt-8 text-center text-orange-200">
-                <p>&copy; 2025 Warung Nusantara. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
 @endsection

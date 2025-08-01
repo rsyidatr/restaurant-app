@@ -137,8 +137,6 @@ Route::middleware(['auth', 'role:waiter'])->group(function () {
 
 # 📦 Business Rules - Aplikasi Restoran Laravel + PostgreSQL + TailwindCSS
 
-## 🧩 FASE 1: FITUR UTAMA APLIKASI
-
 ### ✅ Fitur Pelanggan
 - Melihat menu lengkap beserta kategori
 - Menambahkan item ke **keranjang**
@@ -149,19 +147,28 @@ Route::middleware(['auth', 'role:waiter'])->group(function () {
 - Melacak status pesanan secara real-time
 - Dine-in: Konfirmasi pesanan diterima dilakukan oleh **pelayan**
 
-### ✅ Fitur Pelayan (gabungan Admin + Waiter)
-- Login ke dashboard
-- Kelola kategori dan item menu
-- Kelola pengguna dan peran
-- Lihat & kelola pesanan dari pelanggan
-- Kelola reservasi meja dine-in
-- Konfirmasi pesanan telah diterima pelanggan dine-in
-- Kelola status meja (available, reserved, occupied, cleaning)
+### ✅ Fitur Admin
+- Login ke dashboard admin
+- Melihat ringkasan aktivitas restoran
+- Kelola kategori & item menu (tambah, edit, hapus)
+- Kelola pengguna & peran (admin, pelayan, koki, pelanggan)
+- Melihat & mengelola semua pesanan (ubah status, lihat detail)
+- Kelola reservasi & status meja dine-in
+- Melihat dan ekspor laporan penjualan (harian, mingguan, bulanan)
+- Melihat riwayat transaksi pembayaran
+- Verifikasi pembayaran tunai
+
+### ✅ Fitur Pelayan
+- Login ke dashboard pelayan
+- Melihat & menangani pesanan dine-in (lihat, proses, ubah status)
+- Konfirmasi bahwa pesanan telah diterima pelanggan dine-in
+- Kelola reservasi dan status meja (reserved, occupied, cleaning)
+- Membantu mencatat pesanan langsung dari pelanggan (opsional)
 
 ### ✅ Fitur Koki (Dapur)
-- Menerima notifikasi pesanan baru
+- Menerima notifikasi pesanan baru dari sistem
 - Update status makanan: sedang dimasak, siap saji
-- Update status menu: **available / habis**
+- Atur status ketersediaan makanan (available / habis)
 
 
 ## 🔁 FASE 2: ALUR BISNIS
@@ -177,17 +184,24 @@ Route::middleware(['auth', 'role:waiter'])->group(function () {
 6. Melacak status pesanan
 7. Pesanan diterima (untuk dine-in dikonfirmasi oleh pelayan)
 
-### 🔄 Alur Pelayan
+### 🔄 Alur Admin
 1. Login ke dashboard
-2. Lihat daftar pesanan
-3. Ubah status pesanan sesuai alur: `pending → processing → ready → completed`
-4. Konfirmasi pesanan dine-in sudah diterima oleh pelanggan
-5. Kelola daftar reservasi dan status meja
+2. Mengelola data menu, pengguna, dan meja
+3. Meninjau daftar semua pesanan dan statusnya
+4. Mengakses dan mengekspor laporan penjualan
+5. Verifikasi dan meninjau pembayaran
+
+### 🔄 Alur Pelayan
+1. Login ke dashboard pelayan
+2. Melihat daftar pesanan dine-in
+3. Memproses pesanan dine-in (`pending → processing → ready → completed`)
+4. Konfirmasi penerimaan pesanan oleh pelanggan dine-in
+5. Kelola status & reservasi meja
 
 ### 🔄 Alur Dapur
-1. Menerima notifikasi pesanan baru
-2. Masak makanan dan update status
-3. Atur status ketersediaan makanan (available / habis)
+1. Menerima notifikasi pesanan masuk
+2. Memasak makanan dan memperbarui status
+3. Update ketersediaan makanan (habis / tersedia)
 
 
 ## 🧱 FASE 3: STRUKTUR DATABASE (PostgreSQL)
