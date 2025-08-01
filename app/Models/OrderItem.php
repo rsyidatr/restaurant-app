@@ -31,6 +31,12 @@ class OrderItem extends Model
         return $this->belongsTo(Order::class);
     }
 
+    // Relationship dengan MenuItem
+    public function menuItem()
+    {
+        return $this->belongsTo(MenuItem::class);
+    }
+
     // Hitung total harga untuk item ini
     public function getTotalAttribute()
     {

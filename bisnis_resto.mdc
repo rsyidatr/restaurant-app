@@ -85,57 +85,7 @@ vite.config.js
 
 ## 👥 Pembagian Role & Fungsinya
 
-### 🔹 Pelanggan (`Customer`)
-📁 Folder: `Controllers/Customer/`  
-🧾 Fitur:
-- Melihat dan mencari menu
-- Menambahkan item ke keranjang
-- Checkout dan bayar pesanan
-- Reservasi meja (dine-in)
-- Lacak status pesanan
-
-### 🔸 Pelayan (`Waiter`)
-📁 Folder: `Controllers/Waiter/`  
-🧾 Fitur:
-- Melihat dan memproses semua pesanan
-- Kelola reservasi
-- Konfirmasi pesanan dine-in telah diterima
-- Kelola status meja
-- Kelola kategori dan item menu
-
-### 🔺 Koki / Dapur (`Kitchen`)
-📁 Folder: `Controllers/Kitchen/`  
-🧾 Fitur:
-- Menerima dan melihat pesanan masuk
-- Update status makanan (diproses, siap)
-- Atur ketersediaan makanan: `available/habis`
-
----
-
-## 🛡️ Middleware Role-based (Disarankan)
-
-Gunakan middleware seperti ini:
-```php
-// app/Http/Middleware/RoleMiddleware.php
-
-if ($request->user()->role !== $role) {
-    abort(403);
-}
-```
-
-Registrasi di `Kernel.php`:
-```php
-'role' => \App\Http\Middleware\RoleMiddleware::class,
-```
-
-Dan gunakan di route:
-```php
-Route::middleware(['auth', 'role:waiter'])->group(function () {
-    // route untuk pelayan
-});
-```
-
-# 📦 Business Rules - Aplikasi Restoran Laravel + PostgreSQL + TailwindCSS
+## 🧩 FASE 1: FITUR UTAMA APLIKASI
 
 ### ✅ Fitur Pelanggan
 - Melihat menu lengkap beserta kategori
@@ -208,7 +158,7 @@ Route::middleware(['auth', 'role:waiter'])->group(function () {
 
 ### Tabel `users`
 - id, name, email, password
-- role: enum('pelayan', 'koki', 'pelanggan')
+- role: enum('admin', 'pelayan', 'koki', 'pelanggan')
 
 ### Tabel `menu_categories`
 - id, name, description

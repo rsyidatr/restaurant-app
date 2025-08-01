@@ -15,9 +15,6 @@ class ReservationController extends Controller
 
     public function preview(Request $request)
     {
-        // Debug: tampilkan data yang diterima
-        dd('Form submitted!', $request->all());
-        
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',

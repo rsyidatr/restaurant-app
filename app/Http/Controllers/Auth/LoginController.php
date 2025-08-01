@@ -25,6 +25,7 @@ class LoginController extends Controller
 
             $user = Auth::user();
             $redirectRoute = match($user->role) {
+                'admin' => 'admin.dashboard',
                 'pelayan' => 'waiter.dashboard',
                 'koki' => 'kitchen.dashboard',
                 'pelanggan' => 'customer.home',
