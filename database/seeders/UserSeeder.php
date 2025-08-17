@@ -20,9 +20,9 @@ class UserSeeder extends Seeder
 
         // Pelayan dummy
         User::create([
-            'name' => 'Waiter Test',
-            'email' => 'waiter@test.com',
-            'password' => Hash::make('password123'),
+            'name' => 'Pelayan Restaurant',
+            'email' => 'pelayan@restaurant.com',
+            'password' => Hash::make('password'),
             'role' => 'pelayan'
         ]);
 

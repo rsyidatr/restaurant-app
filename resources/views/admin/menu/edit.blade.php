@@ -101,9 +101,18 @@
                     @if($menuItem->image_url)
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Gambar Saat Ini</label>
-                            <img src="{{ $menuItem->image_url }}" 
+                            @php
+                                $imagePath = $menuItem->image_url;
+                                if (str_contains($imagePath, 'menu/')) {
+                                    $imageUrl = asset('storage/' . $imagePath);
+                                } else {
+                                    $imageUrl = asset('images/menu/' . $imagePath);
+                                }
+                            @endphp
+                            <img src="{{ $imageUrl }}" 
                                  alt="{{ $menuItem->name }}" 
-                                 class="w-full h-48 object-cover rounded-lg border border-gray-300">
+                                 class="w-full h-48 object-cover rounded-lg border border-gray-300"
+                                 onerror="this.src='{{ asset('images/menu/default-menu.jpg') }}'">
                         </div>
                     @endif
                 </div>

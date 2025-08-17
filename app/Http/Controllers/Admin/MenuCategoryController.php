@@ -10,7 +10,7 @@ class MenuCategoryController extends Controller
 {
     public function index()
     {
-        $categories = MenuCategory::withCount('menuItems')->paginate(10);
+        $categories = MenuCategory::withCount('menuItems')->orderBy('created_at', 'desc')->paginate(10);
         return view('admin.menu-categories.index', compact('categories'));
     }
 

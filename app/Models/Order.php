@@ -16,26 +16,41 @@ class Order extends Model
         'table_id',
         'customer_name',
         'customer_phone',
+        'customer_email',
         'order_type',
         'status',
         'payment_status',
         'total_amount',
+        'subtotal',
         'tax_amount',
         'service_charge',
         'grand_total',
         'payment_method',
         'notes',
+        'special_instructions',
         'order_date',
-        'payment_date'
+        'payment_date',
+        'confirmed_at',
+        'started_cooking_at',
+        'ready_at',
+        'served_at',
+        'estimated_completion_time',
+        'priority'
     ];
 
     protected $casts = [
         'total_amount' => 'integer',
+        'subtotal' => 'integer',
         'tax_amount' => 'integer',
         'service_charge' => 'integer',
         'grand_total' => 'integer',
         'order_date' => 'datetime',
-        'payment_date' => 'datetime'
+        'payment_date' => 'datetime',
+        'confirmed_at' => 'datetime',
+        'started_cooking_at' => 'datetime',
+        'ready_at' => 'datetime',
+        'served_at' => 'datetime',
+        'estimated_completion_time' => 'datetime'
     ];
 
     // Relationships
@@ -52,6 +67,11 @@ class Order extends Model
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function waiter()
+    {
+        return $this->belongsTo(User::class, 'waiter_id');
     }
 
     // Generate order number

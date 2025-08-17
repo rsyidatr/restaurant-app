@@ -25,6 +25,18 @@ class Table extends Model
     {
         return $this->hasMany(Order::class);
     }
+    
+    // Current order (order yang sedang berlangsung)
+    public function currentOrder()
+    {
+        return $this->hasOne(Order::class)->whereIn('status', ['pending', 'processing', 'ready']);
+    }
+    
+    // Relationship dengan Reservations
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class);
+    }
 
     // Scope untuk meja yang tersedia
     public function scopeAvailable($query)

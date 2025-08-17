@@ -10,17 +10,24 @@ use Illuminate\Support\Facades\Storage;
 
 class MenuController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $menuItems = MenuItem::with('category')->orderBy('created_at', 'desc')->paginate(10);
-        $categories = MenuCategory::all();
+        $query = MenuItem::with('category');
+        
+        // Filter berdasarkan kategori jika ada
+        if ($request->has('category') && $request->category) {
+            $query->where('category_id', $request->category);
+        }
+        
+        $menuItems = $query->orderBy('created_at', 'desc')->paginate(10);
+        $categories = MenuCategory::orderBy('name')->get();
         
         return view('admin.menu.index', compact('menuItems', 'categories'));
     }
     
     public function create()
     {
-        $categories = MenuCategory::all();
+        $categories = MenuCategory::orderBy('name')->get();
         return view('admin.menu.create', compact('categories'));
     }
     
@@ -41,7 +48,7 @@ class MenuController extends Controller
         
         MenuItem::create($validated);
         
-        return redirect()->route('admin.menu.index')->with('success', 'Menu item created successfully.');
+        return redirect()->route('admin.menu.index')->with('success', 'Menu berhasil ditambahkan.');
     }
     
     public function show(MenuItem $menuItem)
@@ -51,7 +58,7 @@ class MenuController extends Controller
     
     public function edit(MenuItem $menuItem)
     {
-        $categories = MenuCategory::all();
+        $categories = MenuCategory::orderBy('name')->get();
         return view('admin.menu.edit', compact('menuItem', 'categories'));
     }
     
@@ -76,18 +83,21 @@ class MenuController extends Controller
         
         $menuItem->update($validated);
         
-        return redirect()->route('admin.menu.index')->with('success', 'Menu item updated successfully.');
+        return redirect()->route('admin.menu.index')->with('success', 'Menu berhasil diperbarui.');
     }
     
     public function destroy(MenuItem $menuItem)
     {
+        $menuName = $menuItem->name; // Simpan nama untuk pesan
+        
+        // Hapus gambar jika ada
         if ($menuItem->image_url) {
             Storage::disk('public')->delete($menuItem->image_url);
         }
         
         $menuItem->delete();
         
-        return redirect()->route('admin.menu.index')->with('success', 'Menu item deleted successfully.');
+        return redirect()->route('admin.menu.index')->with('success', "Menu '{$menuName}' berhasil dihapus.");
     }
     
     public function toggleAvailability(MenuItem $menuItem)
@@ -96,11 +106,11 @@ class MenuController extends Controller
             'is_available' => !$menuItem->is_available
         ]);
         
-        $status = $menuItem->is_available ? 'available' : 'unavailable';
+        $status = $menuItem->is_available ? 'tersedia' : 'tidak tersedia';
         
         return response()->json([
             'success' => true,
-            'message' => "Menu item is now {$status}",
+            'message' => "Menu '{$menuItem->name}' sekarang {$status}",
             'is_available' => $menuItem->is_available
         ]);
     }

@@ -72,9 +72,18 @@
             <h2 class="text-xl font-semibold text-gray-800 mb-4">Gambar Menu</h2>
             
             @if($menuItem->image_url)
-                <img src="{{ $menuItem->image_url }}" 
+                @php
+                    $imagePath = $menuItem->image_url;
+                    if (str_contains($imagePath, 'menu/')) {
+                        $imageUrl = asset('storage/' . $imagePath);
+                    } else {
+                        $imageUrl = asset('images/menu/' . $imagePath);
+                    }
+                @endphp
+                <img src="{{ $imageUrl }}" 
                      alt="{{ $menuItem->name }}" 
-                     class="w-full h-64 object-cover rounded-lg border border-gray-300">
+                     class="w-full h-64 object-cover rounded-lg border border-gray-300"
+                     onerror="this.src='{{ asset('images/menu/default-menu.jpg') }}'">
             @else
                 <div class="w-full h-64 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
                     <div class="text-center">

@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\MultiSessionController;
-use App\Http\Controllers\Auth\StaffLoginController;
 use App\Http\Controllers\Customer\MenuController;
 use App\Http\Controllers\Customer\ReservationController;
 use App\Http\Controllers\Customer\CartController;
@@ -18,8 +17,6 @@ use App\Http\Controllers\Admin\TableController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\ReportController;
-use App\Http\Controllers\ChefController;
-use App\Http\Controllers\WaiterController;
 
 /*
 |--------------------------------------------------------------------------
@@ -79,9 +76,34 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'login']);
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register', [RegisterController::class, 'register']);
+    
+    // Test login route
+    Route::get('/login-test', function () {
+        return view('auth.login_test');
+    })->name('login.test');
 });
 
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
+
+// Debug route untuk test login pelayan
+Route::get('/test-waiter', function () {
+    if (Auth::check()) {
+        $user = Auth::user();
+        return view('waiter.dashboard_test', [
+            'todayOrders' => 5,
+            'pendingOrders' => 3,
+            'processingOrders' => 2,
+            'availableTables' => 8,
+            'occupiedTables' => 4,
+            'todayReservations' => 6,
+            'recentOrders' => collect([]),
+            'stats' => [],
+            'tables' => collect([])
+        ]);
+    } else {
+        return redirect()->route('login')->with('error', 'Please login first');
+    }
+})->name('test.waiter');
 
 // Admin Routes
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -145,6 +167,68 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     });
 });
 
+// Waiter Routes
+Route::middleware(['auth', 'role:pelayan'])->prefix('waiter')->name('waiter.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\Waiter\DashboardController::class, 'index'])->name('dashboard');
+    
+    // Order Management
+    Route::prefix('orders')->name('orders.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Waiter\OrderController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Waiter\OrderController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Waiter\OrderController::class, 'store'])->name('store');
+        Route::get('/{order}', [\App\Http\Controllers\Waiter\OrderController::class, 'show'])->name('show');
+        Route::get('/{order}/edit', [\App\Http\Controllers\Waiter\OrderController::class, 'edit'])->name('edit');
+        Route::put('/{order}', [\App\Http\Controllers\Waiter\OrderController::class, 'update'])->name('update');
+        Route::put('/{order}/status', [\App\Http\Controllers\Waiter\OrderController::class, 'updateStatus'])->name('updateStatus');
+        Route::post('/{order}/confirm', [\App\Http\Controllers\Waiter\OrderController::class, 'confirmOrder'])->name('confirm');
+        Route::post('/{order}/mark-served', [\App\Http\Controllers\Waiter\OrderController::class, 'markAsServed'])->name('mark-served');
+        Route::post('/{order}/confirm-received', [\App\Http\Controllers\Waiter\OrderController::class, 'confirmReceived'])->name('confirmReceived');
+        Route::get('/{order}/items', [\App\Http\Controllers\Waiter\OrderController::class, 'getOrderItems'])->name('items');
+        Route::get('/{order}/receipt', [\App\Http\Controllers\Waiter\OrderController::class, 'receipt'])->name('receipt');
+    });
+    
+    // Table Management
+    Route::prefix('tables')->name('tables.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Waiter\TableController::class, 'index'])->name('index');
+        Route::get('/{table}', [\App\Http\Controllers\Waiter\TableController::class, 'show'])->name('show');
+        Route::put('/{table}/status', [\App\Http\Controllers\Waiter\TableController::class, 'updateStatus'])->name('updateStatus');
+        Route::get('/{table}/quick-view', [\App\Http\Controllers\Waiter\TableController::class, 'quickView'])->name('quickView');
+    });
+    
+    // Reservation Management
+    Route::prefix('reservations')->name('reservations.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Waiter\ReservationController::class, 'index'])->name('index');
+        Route::get('/{reservation}', [\App\Http\Controllers\Waiter\ReservationController::class, 'show'])->name('show');
+        Route::put('/{reservation}/status', [\App\Http\Controllers\Waiter\ReservationController::class, 'updateStatus'])->name('updateStatus');
+        Route::put('/{reservation}/assign-table', [\App\Http\Controllers\Waiter\ReservationController::class, 'assignTable'])->name('assignTable');
+        Route::post('/{reservation}/check-in', [\App\Http\Controllers\Waiter\ReservationController::class, 'checkIn'])->name('checkIn');
+        Route::post('/{reservation}/cancel', [\App\Http\Controllers\Waiter\ReservationController::class, 'cancel'])->name('cancel');
+    });
+});
+
+// Kitchen Routes
+Route::middleware(['auth', 'role:koki'])->prefix('kitchen')->name('kitchen.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\Kitchen\DashboardController::class, 'index'])->name('dashboard');
+    
+    // Order Management
+    Route::prefix('orders')->name('orders.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Kitchen\KitchenOrderController::class, 'index'])->name('index');
+        Route::get('/{order}', [\App\Http\Controllers\Kitchen\KitchenOrderController::class, 'show'])->name('show');
+        Route::put('/{order}/status', [\App\Http\Controllers\Kitchen\KitchenOrderController::class, 'updateStatus'])->name('updateStatus');
+        Route::post('/{order}/start-cooking', [\App\Http\Controllers\Kitchen\KitchenOrderController::class, 'startCooking'])->name('startCooking');
+        Route::post('/{order}/mark-ready', [\App\Http\Controllers\Kitchen\KitchenOrderController::class, 'markReady'])->name('markReady');
+        Route::get('/{order}/items', [\App\Http\Controllers\Kitchen\KitchenOrderController::class, 'getOrderItems'])->name('items');
+    });
+    
+    // Menu Availability Management
+    Route::prefix('menu')->name('menu.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Kitchen\MenuAvailabilityController::class, 'index'])->name('index');
+        Route::get('/{menuItem}', [\App\Http\Controllers\Kitchen\MenuAvailabilityController::class, 'show'])->name('show');
+        Route::post('/{menuItem}/toggle-availability', [\App\Http\Controllers\Kitchen\MenuAvailabilityController::class, 'toggleAvailability'])->name('toggleAvailability');
+        Route::post('/bulk-update', [\App\Http\Controllers\Kitchen\MenuAvailabilityController::class, 'bulkUpdateAvailability'])->name('bulkUpdate');
+    });
+});
+
 // Customer Routes (perlu login)
 Route::middleware(['auth', 'role:pelanggan'])->group(function () {
     Route::get('/customer', function () {
@@ -152,57 +236,56 @@ Route::middleware(['auth', 'role:pelanggan'])->group(function () {
     })->name('customer.home');
 });
 
-// Waiter Routes
+// Waiter Routes (Legacy - redirect to new routes)
 Route::middleware(['auth', 'role:pelayan'])->group(function () {
-    Route::get('/waiter', [WaiterController::class, 'dashboard'])->name('waiter.dashboard');
-    
-    // Waiter API endpoints
-    Route::get('/waiter/tables', [WaiterController::class, 'getTableStatus'])->name('waiter.tables');
-    Route::get('/waiter/orders', [WaiterController::class, 'getRecentOrders'])->name('waiter.orders');
-    Route::post('/waiter/orders', [WaiterController::class, 'createOrder'])->name('waiter.orders.create');
-    Route::patch('/waiter/orders/{order}', [WaiterController::class, 'updateOrderStatus'])->name('waiter.orders.update');
-    Route::post('/waiter/tables/{table}/served', [WaiterController::class, 'markAsServed'])->name('waiter.tables.served');
-    Route::post('/waiter/tables/{table}/payment', [WaiterController::class, 'processPayment'])->name('waiter.tables.payment');
+    Route::get('/waiter', function () {
+        return redirect()->route('waiter.dashboard');
+    })->name('waiter.dashboard.legacy');
 });
 
-// Kitchen Routes
+// Kitchen Routes (Legacy - redirect to new routes)
 Route::middleware(['auth', 'role:koki'])->group(function () {
     Route::get('/kitchen', function () {
-        return view('kitchen.dashboard');
-    })->name('kitchen.dashboard');
-    Route::get('/chef', [ChefController::class, 'dashboard'])->name('chef.dashboard');
-    
-    // Chef API endpoints
-    Route::get('/chef/orders', [ChefController::class, 'getOrders'])->name('chef.orders');
-    Route::patch('/chef/orders/{order}/status', [ChefController::class, 'updateOrderStatus'])->name('chef.orders.status');
-    Route::post('/chef/orders/{order}/priority', [ChefController::class, 'setPriority'])->name('chef.orders.priority');
+        return redirect()->route('kitchen.dashboard');
+    })->name('kitchen.dashboard.legacy');
 });
 
-// Staff Authentication Routes
-Route::group(['prefix' => 'staff'], function () {
-    Route::get('/', function () {
-        return view('staff.index');
-    })->name('staff.index');
+// Debug Routes untuk troubleshooting waiter login
+Route::get('/debug-auth', function () {
+    $user = Auth::user();
     
-    Route::get('login', [StaffLoginController::class, 'showLoginForm'])->name('staff.login');
-    Route::post('login', [StaffLoginController::class, 'login'])->name('staff.login.submit');
-    Route::post('logout', [StaffLoginController::class, 'logout'])->name('staff.logout');
-    
-    // Staff Dashboard Routes (require staff authentication)
-    Route::middleware(['auth', 'role:admin,chef,waiter'])->group(function () {
-        Route::get('dashboard', function () {
-            $role = session('current_role', Auth::user()->role);
-            
-            switch ($role) {
-                case 'admin':
-                    return redirect()->route('admin.dashboard');
-                case 'chef':
-                    return redirect()->route('chef.dashboard');
-                case 'waiter':
-                    return redirect()->route('waiter.dashboard');
-                default:
-                    return redirect()->route('staff.login');
-            }
-        })->name('staff.dashboard');
-    });
+    return response()->json([
+        'authenticated' => Auth::check(),
+        'user' => $user ? [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+        ] : null,
+        'waiter_routes' => [
+            'dashboard' => route('waiter.dashboard'),
+            'orders' => route('waiter.orders.index'),
+        ]
+    ]);
+});
+
+Route::get('/debug-waiter-direct', function () {
+    // Test view waiter langsung tanpa middleware
+    try {
+        return view('waiter.dashboard', [
+            'todayOrders' => 5,
+            'pendingOrders' => 2,
+            'processingOrders' => 3,
+            'availableTables' => 8,
+            'recentOrders' => collect([]),
+            'reservations' => collect([])
+        ]);
+    } catch (Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'trace' => $e->getTraceAsString()
+        ]);
+    }
 });

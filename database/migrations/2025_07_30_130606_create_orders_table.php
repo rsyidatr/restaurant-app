@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade'); // untuk authenticated users
             $table->foreignId('table_id')->constrained()->onDelete('cascade'); // nomor meja
             $table->enum('order_type', ['dine_in', 'take_away', 'delivery'])->default('dine_in');
-            $table->enum('status', ['pending', 'processing', 'ready', 'completed', 'cancelled'])->default('pending');
+            $table->enum('status', ['pending', 'preparing', 'ready', 'served', 'cancelled'])->default('pending');
             $table->enum('payment_status', ['pending', 'paid', 'failed'])->default('pending');
             $table->integer('total_amount'); // total harga
             $table->integer('tax_amount')->default(0); // pajak

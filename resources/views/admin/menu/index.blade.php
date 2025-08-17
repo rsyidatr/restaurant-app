@@ -6,6 +6,19 @@
         <h1 class="text-3xl font-bold text-gray-800">Kelola Menu</h1>
     </div>
 
+    <!-- Alert Success/Error Messages -->
+    @if(session('success'))
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            {{ session('success') }}
+        </div>
+    @endif
+    
+    @if(session('error'))
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {{ session('error') }}
+        </div>
+    @endif
+
 <div class="space-y-6">
     <!-- Action Buttons -->
     <div class="flex justify-between items-center">
@@ -93,12 +106,21 @@
                             </button>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                            <a href="{{ route('admin.menu.show', $item) }}" 
+                               class="text-blue-600 hover:text-blue-800 inline-block" 
+                               title="Lihat Detail">
+                                <i class="fas fa-eye"></i>
+                            </a>
                             <a href="{{ route('admin.menu.edit', $item) }}" 
-                               class="text-black hover:text-gray-600">
+                               class="text-yellow-600 hover:text-yellow-800 inline-block" 
+                               title="Edit Menu">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <button onclick="deleteMenuItem({{ $item->id }})" 
-                                    class="text-red-600 hover:text-red-800">
+                            <button type="button" 
+                                    onclick="alert('Button clicked for item: {{ $item->id }}'); deleteMenuItem({{ $item->id }}, {{ json_encode($item->name) }})" 
+                                    class="text-red-600 hover:text-red-800 inline-block" 
+                                    title="Hapus Menu"
+                                    id="delete-btn-{{ $item->id }}">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </td>
@@ -129,17 +151,47 @@
 
 <!-- Delete Confirmation Modal -->
 <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-6 max-w-sm mx-4">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Hapus Item Menu</h3>
-        <p class="text-gray-600 mb-6">Anda yakin ingin menghapus item menu ini? Tindakan ini tidak dapat dibatalkan.</p>
-        <div class="flex space-x-4">
-            <button onclick="confirmDelete()" 
-                    class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
-                Hapus
-            </button>
+    <div class="bg-white rounded-lg p-6 max-w-md mx-4 transform transition-all duration-300 scale-95" id="deleteModalContent">
+        <div class="flex items-center mb-4">
+            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <i class="fas fa-exclamation-triangle text-red-600"></i>
+            </div>
+            <h3 class="ml-3 text-lg font-medium text-gray-900">Konfirmasi Hapus Menu</h3>
+        </div>
+        
+        <div class="mb-6">
+            <p class="text-gray-600 mb-2">Anda yakin ingin menghapus menu item berikut?</p>
+            <div class="bg-gray-50 p-3 rounded-lg">
+                <p class="font-semibold text-gray-900" id="deleteItemName"></p>
+                <p class="text-sm text-gray-500">Tindakan ini tidak dapat dibatalkan dan akan menghapus menu dari daftar customer.</p>
+            </div>
+        </div>
+        
+        <div class="flex justify-end space-x-3">
             <button onclick="closeDeleteModal()" 
-                    class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors">
-                Batal
+                    class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
+                <i class="fas fa-times mr-2"></i>Batal
+            </button>
+            <button onclick="confirmDelete()" 
+                    class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
+                <i class="fas fa-trash mr-2"></i>Hapus Menu
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="fixed top-4 right-4 transform translate-x-full transition-transform duration-300 z-50">
+    <div class="bg-white border-l-4 rounded-lg shadow-lg p-4 max-w-sm">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i id="toastIcon" class="text-xl"></i>
+            </div>
+            <div class="ml-3">
+                <p id="toastMessage" class="text-sm font-medium"></p>
+            </div>
+            <button onclick="hideToast()" class="ml-4 text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
             </button>
         </div>
     </div>
@@ -148,7 +200,9 @@
 @push('scripts')
 <script>
 let deleteItemId = null;
+let deleteItemName = null;
 
+// Toggle availability function
 function toggleAvailability(itemId) {
     fetch(`/admin/menu/${itemId}/toggle-availability`, {
         method: 'POST',
@@ -170,49 +224,157 @@ function toggleAvailability(itemId) {
                 statusElement.textContent = 'Tidak Tersedia';
                 buttonElement.className = 'inline-flex px-2 py-1 text-xs font-medium rounded-full transition-colors bg-red-100 text-red-800 hover:bg-red-200';
             }
+            
+            showToast('Status menu berhasil diperbarui', 'success');
+        } else {
+            showToast('Gagal memperbarui status menu', 'error');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Gagal memperbarui status');
+        showToast('Terjadi kesalahan saat memperbarui status', 'error');
     });
 }
 
-function deleteMenuItem(itemId) {
+// Delete menu item functions
+function deleteMenuItem(itemId, itemName) {
+    console.log('Delete button clicked:', itemId, itemName); // Debug log
+    
     deleteItemId = itemId;
-    document.getElementById('deleteModal').classList.remove('hidden');
-    document.getElementById('deleteModal').classList.add('flex');
+    deleteItemName = itemName;
+    
+    // Set the item name in modal
+    const deleteItemNameElement = document.getElementById('deleteItemName');
+    if (deleteItemNameElement) {
+        deleteItemNameElement.textContent = itemName;
+    } else {
+        console.error('deleteItemName element not found');
+        return;
+    }
+    
+    const modal = document.getElementById('deleteModal');
+    const modalContent = document.getElementById('deleteModalContent');
+    
+    if (!modal || !modalContent) {
+        console.error('Modal elements not found');
+        return;
+    }
+    
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    // Animation
+    setTimeout(() => {
+        modalContent.classList.remove('scale-95');
+        modalContent.classList.add('scale-100');
+    }, 10);
 }
 
 function closeDeleteModal() {
-    document.getElementById('deleteModal').classList.add('hidden');
-    document.getElementById('deleteModal').classList.remove('flex');
+    const modal = document.getElementById('deleteModal');
+    const modalContent = document.getElementById('deleteModalContent');
+    
+    modalContent.classList.remove('scale-100');
+    modalContent.classList.add('scale-95');
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }, 150);
+    
     deleteItemId = null;
+    deleteItemName = null;
 }
 
 function confirmDelete() {
-    if (deleteItemId) {
+    console.log('Confirm delete clicked:', deleteItemId); // Debug log
+    
+    if (!deleteItemId) {
+        console.error('No item ID to delete');
+        return;
+    }
+    
+    // Show loading state
+    const deleteButton = document.querySelector('#deleteModal button[onclick="confirmDelete()"]');
+    if (deleteButton) {
+        const originalText = deleteButton.innerHTML;
+        deleteButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menghapus...';
+        deleteButton.disabled = true;
+    }
+    
+    try {
+        // Create and submit form
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = `/admin/menu/${deleteItemId}`;
+        form.style.display = 'none'; // Hide form
         
+        // Add method field for DELETE
         const methodInput = document.createElement('input');
         methodInput.type = 'hidden';
         methodInput.name = '_method';
         methodInput.value = 'DELETE';
+        form.appendChild(methodInput);
         
+        // Add CSRF token
         const tokenInput = document.createElement('input');
         tokenInput.type = 'hidden';
         tokenInput.name = '_token';
         tokenInput.value = '{{ csrf_token() }}';
-        
-        form.appendChild(methodInput);
         form.appendChild(tokenInput);
+        
+        console.log('Form created with action:', form.action);
+        console.log('CSRF token:', tokenInput.value);
+        console.log('Method input:', methodInput.value);
+        
+        // Append to body and submit
         document.body.appendChild(form);
+        
+        console.log('Submitting form to:', form.action); // Debug log
         form.submit();
+        
+    } catch (error) {
+        console.error('Error submitting delete form:', error);
+        showToast('Terjadi kesalahan saat menghapus menu', 'error');
+        
+        // Restore button state
+        if (deleteButton) {
+            deleteButton.innerHTML = '<i class="fas fa-trash mr-2"></i>Hapus Menu';
+            deleteButton.disabled = false;
+        }
     }
 }
 
+// Toast notification functions
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    const icon = document.getElementById('toastIcon');
+    const messageEl = document.getElementById('toastMessage');
+    const borderClass = type === 'success' ? 'border-green-400' : 'border-red-400';
+    const iconClass = type === 'success' ? 'fas fa-check-circle text-green-500' : 'fas fa-exclamation-circle text-red-500';
+    
+    // Set content
+    messageEl.textContent = message;
+    icon.className = iconClass;
+    toast.firstElementChild.className = `bg-white ${borderClass} rounded-lg shadow-lg p-4 max-w-sm`;
+    
+    // Show toast
+    toast.classList.remove('translate-x-full');
+    toast.classList.add('translate-x-0');
+    
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+        hideToast();
+    }, 3000);
+}
+
+function hideToast() {
+    const toast = document.getElementById('toast');
+    toast.classList.remove('translate-x-0');
+    toast.classList.add('translate-x-full');
+}
+
+// Filter function
 function filterByCategory(categoryId) {
     let url = new URL(window.location);
     if (categoryId) {
@@ -222,6 +384,36 @@ function filterByCategory(categoryId) {
     }
     window.location = url;
 }
+
+// Close modal when clicking outside
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDeleteModal();
+    }
+});
+
+// Show success message if exists
+@if(session('success'))
+    document.addEventListener('DOMContentLoaded', function() {
+        showToast('{{ session('success') }}', 'success');
+    });
+@endif
+
+@if(session('error'))
+    document.addEventListener('DOMContentLoaded', function() {
+        showToast('{{ session('error') }}', 'error');
+    });
+@endif
+
+// Debug: Log all delete buttons when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Page loaded, checking delete buttons...');
+    const deleteButtons = document.querySelectorAll('[id^="delete-btn-"]');
+    console.log('Found delete buttons:', deleteButtons.length);
+    deleteButtons.forEach(button => {
+        console.log('Button:', button.id, 'onclick:', button.getAttribute('onclick'));
+    });
+});
 </script>
 @endpush
 @endsection
