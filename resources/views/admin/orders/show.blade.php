@@ -100,16 +100,16 @@
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
-                                        @if($item->menuItem->image_url)
+                                        @if($item->menuItem && $item->menuItem->image_url)
                                             <img class="h-10 w-10 rounded-full object-cover" src="{{ $item->menuItem->image_url }}" alt="{{ $item->menuItem->name }}">
                                         @else
                                             <div class="h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center">
-                                                <span class="text-xs text-gray-500">{{ substr($item->menuItem->name, 0, 2) }}</span>
+                                                <span class="text-xs text-gray-500">{{ $item->menuItem ? substr($item->menuItem->name, 0, 2) : 'N/A' }}</span>
                                             </div>
                                         @endif
                                         <div class="ml-4">
-                                            <div class="text-sm font-medium text-gray-900">{{ $item->menuItem->name }}</div>
-                                            <div class="text-sm text-gray-500">{{ $item->menuItem->category->name }}</div>
+                                            <div class="text-sm font-medium text-gray-900">{{ $item->menuItem ? $item->menuItem->name : 'Menu dihapus' }}</div>
+                                            <div class="text-sm text-gray-500">{{ $item->menuItem && $item->menuItem->category ? $item->menuItem->category->name : 'Kategori tidak tersedia' }}</div>
                                         </div>
                                     </div>
                                 </td>

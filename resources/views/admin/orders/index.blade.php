@@ -7,13 +7,13 @@
         <div class="flex space-x-2">
             <select id="statusFilter" class="px-3 py-2 border border-gray-300 rounded-md">
                 <option value="">Semua Status</option>
-                <option value="pending">Pending</option>
-                <option value="confirmed">Dikonfirmasi</option>
-                <option value="preparing">Diproses</option>
-                <option value="ready">Siap</option>
-                <option value="served">Disajikan</option>
-                <option value="completed">Selesai</option>
-                <option value="cancelled">Dibatalkan</option>
+                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Dikonfirmasi</option>
+                <option value="preparing" {{ request('status') == 'preparing' ? 'selected' : '' }}>Diproses</option>
+                <option value="ready" {{ request('status') == 'ready' ? 'selected' : '' }}>Siap</option>
+                <option value="served" {{ request('status') == 'served' ? 'selected' : '' }}>Disajikan</option>
+                <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Selesai</option>
+                <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Dibatalkan</option>
             </select>
         </div>
     </div>
@@ -25,18 +25,20 @@
                 <input type="text" 
                        id="searchOrder" 
                        placeholder="Cari nomor pesanan..."
+                       value="{{ request('search') }}"
                        class="w-full px-3 py-2 border border-gray-300 rounded-md">
             </div>
             <div>
                 <input type="date" 
                        id="dateFilter"
+                       value="{{ request('date') }}"
                        class="w-full px-3 py-2 border border-gray-300 rounded-md">
             </div>
             <div>
                 <select id="tableFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md">
                     <option value="">Semua Meja</option>
                     @foreach($tables as $table)
-                        <option value="{{ $table->id }}">{{ $table->table_number }}</option>
+                        <option value="{{ $table->id }}" {{ request('table') == $table->id ? 'selected' : '' }}>{{ $table->table_number }}</option>
                     @endforeach
                 </select>
             </div>
@@ -97,7 +99,7 @@
                     <div class="space-y-1">
                         @foreach($order->orderItems->take(3) as $item)
                             <div class="flex justify-between text-sm">
-                                <span>{{ $item->quantity }}x {{ $item->menuItem->name }}</span>
+                                <span>{{ $item->quantity }}x {{ $item->menuItem ? $item->menuItem->name : 'Menu dihapus' }}</span>
                                 <span>Rp {{ number_format($item->price * $item->quantity, 0, ',', '.') }}</span>
                             </div>
                         @endforeach
@@ -222,6 +224,30 @@ document.getElementById('searchOrder').addEventListener('keyup', function(e) {
         }
         window.location = url;
     }
+});
+
+// Date filter functionality
+document.getElementById('dateFilter').addEventListener('change', function() {
+    const date = this.value;
+    const url = new URL(window.location);
+    if (date) {
+        url.searchParams.set('date', date);
+    } else {
+        url.searchParams.delete('date');
+    }
+    window.location = url;
+});
+
+// Table filter functionality
+document.getElementById('tableFilter').addEventListener('change', function() {
+    const table = this.value;
+    const url = new URL(window.location);
+    if (table) {
+        url.searchParams.set('table', table);
+    } else {
+        url.searchParams.delete('table');
+    }
+    window.location = url;
 });
 </script>
 @endsection

@@ -14,9 +14,24 @@ class OrderController extends Controller
     {
         $query = Order::with(['user', 'table', 'orderItems.menuItem']);
         
+        // Search by order number
+        if ($request->filled('search')) {
+            $query->where('order_number', 'like', '%' . $request->search . '%');
+        }
+        
         // Filter by status
         if ($request->filled('status')) {
             $query->where('status', $request->status);
+        }
+        
+        // Filter by date
+        if ($request->filled('date')) {
+            $query->whereDate('created_at', $request->date);
+        }
+        
+        // Filter by table
+        if ($request->filled('table')) {
+            $query->where('table_id', $request->table);
         }
         
         // Filter by order type
@@ -24,7 +39,7 @@ class OrderController extends Controller
             $query->where('order_type', $request->order_type);
         }
         
-        // Filter by date range
+        // Filter by date range (keeping existing functionality)
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
         }
