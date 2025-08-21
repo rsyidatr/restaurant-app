@@ -74,4 +74,23 @@ class Table extends Model
     {
         return $this->status === 'available';
     }
+
+    // Get today's reservation if any
+    public function todayReservation()
+    {
+        return $this->reservations()
+                    ->where('status', 'confirmed')
+                    ->whereDate('reservation_time', today())
+                    ->first();
+    }
+
+    // Get current reservation (for today and currently active)
+    public function currentReservation()
+    {
+        return $this->reservations()
+                    ->where('status', 'confirmed')
+                    ->whereDate('reservation_time', today())
+                    ->where('reservation_time', '<=', now())
+                    ->first();
+    }
 }

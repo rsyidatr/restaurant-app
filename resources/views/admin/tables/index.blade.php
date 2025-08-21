@@ -63,7 +63,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-blue-600">Total Meja</p>
-                    <p class="text-2xl font-semibold text-gray-900">{{ $tables->count() }}</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ $stats['total'] ?? 0 }}</p>
                 </div>
             </div>
         </div>
@@ -72,7 +72,10 @@
     <!-- Table Grid Layout -->
     <div class="bg-white rounded-lg shadow p-6">
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold text-gray-800">Layout Meja Restaurant</h2>
+            <div>
+                <h2 class="text-xl font-semibold text-gray-800">Layout Meja Restaurant</h2>
+                <p class="text-sm text-gray-600 mt-1">Status meja untuk hari ini: {{ date('d F Y') }}</p>
+            </div>
             <div class="flex space-x-2">
                 <button onclick="toggleView('grid')" id="gridBtn" class="px-3 py-2 bg-blue-600 text-white rounded active">
                     Tampilan Grid
@@ -84,65 +87,150 @@
         </div>
 
         <!-- Grid View -->
-        <div id="gridView" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            @foreach($tables as $table)
-            <div class="relative">
-                <div class="table-item border-2 rounded-lg p-4 text-center cursor-pointer transition-all duration-200 hover:shadow-lg
-                    @if($table->status == 'available') border-green-500 bg-green-50 hover:bg-green-100
-                    @elseif($table->status == 'occupied') border-red-500 bg-red-50 hover:bg-red-100
-                    @elseif($table->status == 'reserved') border-yellow-500 bg-yellow-50 hover:bg-yellow-100
-                    @elseif($table->status == 'maintenance') border-gray-500 bg-gray-50 hover:bg-gray-100
-                    @endif"
-                    onclick="showTableDetails({{ $table->id }})">
-                    
-                    <!-- Table Number -->
-                    <div class="text-2xl font-bold 
-                        @if($table->status == 'available') text-green-700
-                        @elseif($table->status == 'occupied') text-red-700
-                        @elseif($table->status == 'reserved') text-yellow-700
-                        @elseif($table->status == 'maintenance') text-gray-700
-                        @endif">
-                        {{ $table->table_number }}
-                    </div>
-                    
-                    <!-- Capacity -->
-                    <div class="text-sm text-gray-600 mt-1">
-                        {{ $table->capacity }} orang
-                    </div>
-                    
-                    <!-- Status -->
-                    <div class="text-xs font-medium mt-2
-                        @if($table->status == 'available') text-green-600
-                        @elseif($table->status == 'occupied') text-red-600
-                        @elseif($table->status == 'reserved') text-yellow-600
-                        @elseif($table->status == 'maintenance') text-gray-600
-                        @endif">
-                        @if($table->status == 'available') Tersedia
-                        @elseif($table->status == 'occupied') Terisi
-                        @elseif($table->status == 'reserved') Reserved
-                        @elseif($table->status == 'maintenance') Maintenance
-                        @endif
-                    </div>
+        <div id="gridView" class="space-y-6">
+            <!-- Regular Tables Section -->
+            <div>
+                <h3 class="text-lg font-medium text-gray-800 mb-4">Regular Tables (Meja 1-22)</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    @foreach($tables->where('capacity', '<=', 20)->sortBy(function($table) {
+                        return is_numeric($table->table_number) ? (int)$table->table_number : 999;
+                    }) as $table)
+                    <div class="relative group">
+                        <div class="table-item border-2 rounded-lg p-4 text-center cursor-pointer transition-all duration-200 hover:shadow-lg
+                            @if($table->status == 'available') border-green-500 bg-green-50 hover:bg-green-100
+                            @elseif($table->status == 'occupied') border-red-500 bg-red-50 hover:bg-red-100
+                            @elseif($table->status == 'reserved') border-yellow-500 bg-yellow-50 hover:bg-yellow-100
+                            @elseif($table->status == 'cleaning') border-gray-500 bg-gray-50 hover:bg-gray-100
+                            @endif"
+                            onclick="showTableDetails({{ $table->id }})">
+                            
+                            <!-- Table Number -->
+                            <div class="text-2xl font-bold 
+                                @if($table->status == 'available') text-green-700
+                                @elseif($table->status == 'occupied') text-red-700
+                                @elseif($table->status == 'reserved') text-yellow-700
+                                @elseif($table->status == 'cleaning') text-gray-700
+                                @endif">
+                                {{ $table->table_number }}
+                            </div>
+                            
+                            <!-- Capacity -->
+                            <div class="text-sm text-gray-600 mt-1">
+                                {{ $table->capacity }} orang
+                            </div>
+                            
+                            <!-- Status -->
+                            <div class="text-xs font-medium mt-2
+                                @if($table->status == 'available') text-green-600
+                                @elseif($table->status == 'occupied') text-red-600
+                                @elseif($table->status == 'reserved') text-yellow-600
+                                @elseif($table->status == 'cleaning') text-gray-600
+                                @endif">
+                                @if($table->status == 'available') Tersedia
+                                @elseif($table->status == 'occupied') Terisi
+                                @elseif($table->status == 'reserved') Direservasi
+                                @elseif($table->status == 'cleaning') Maintenance
+                                @endif
+                            </div>
 
-                    <!-- Current Reservation/Order Info -->
-                    @if($table->currentReservation)
-                        <div class="text-xs text-gray-600 mt-1">
-                            {{ $table->currentReservation->customer_name }}
+                            <!-- Current Reservation/Order Info -->
+                            @if($table->status == 'reserved' && $table->todayReservation())
+                                <div class="text-xs text-gray-600 mt-1">
+                                    {{ $table->todayReservation()->customer_name }}
+                                </div>
+                            @endif
                         </div>
-                    @endif
-                </div>
 
-                <!-- Quick Actions -->
-                <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div class="flex space-x-1">
-                        <button onclick="event.stopPropagation(); editTable({{ $table->id }})" 
-                                class="w-6 h-6 bg-blue-600 text-white rounded-full text-xs hover:bg-blue-700">
-                            ✎
-                        </button>
+                        <!-- Quick Actions -->
+                        <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div class="flex space-x-1">
+                                <button onclick="event.stopPropagation(); editTable({{ $table->id }})" 
+                                        class="w-6 h-6 bg-blue-600 text-white rounded-full text-xs hover:bg-blue-700">
+                                    ✎
+                                </button>
+                            </div>
+                        </div>
                     </div>
+                    @endforeach
                 </div>
             </div>
-            @endforeach
+
+            <!-- VIP Rooms Section -->
+            @if($tables->where('capacity', 30)->count() > 0)
+            <div>
+                <h3 class="text-lg font-medium text-gray-800 mb-4">VIP Private Dining Rooms</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                    @foreach($tables->where('capacity', 30)->sortBy('table_number') as $table)
+                    <div class="relative group">
+                        <div class="table-item border-2 rounded-lg p-6 text-center cursor-pointer transition-all duration-200 hover:shadow-lg
+                            @if($table->status == 'available') border-green-500 bg-green-50 hover:bg-green-100
+                            @elseif($table->status == 'occupied') border-red-500 bg-red-50 hover:bg-red-100
+                            @elseif($table->status == 'reserved') border-yellow-500 bg-yellow-50 hover:bg-yellow-100
+                            @elseif($table->status == 'cleaning') border-gray-500 bg-gray-50 hover:bg-gray-100
+                            @endif"
+                            onclick="showTableDetails({{ $table->id }})">
+                            
+                            <!-- VIP Room Number -->
+                            <div class="text-3xl font-bold 
+                                @if($table->status == 'available') text-green-700
+                                @elseif($table->status == 'occupied') text-red-700
+                                @elseif($table->status == 'reserved') text-yellow-700
+                                @elseif($table->status == 'cleaning') text-gray-700
+                                @endif">
+                                {{ $table->table_number }}
+                            </div>
+                            
+                            <!-- VIP Label -->
+                            <div class="text-sm font-semibold text-purple-600 mt-1">
+                                VIP ROOM
+                            </div>
+                            
+                            <!-- Capacity -->
+                            <div class="text-sm text-gray-600 mt-1">
+                                {{ $table->capacity }} orang
+                            </div>
+                            
+                            <!-- Status -->
+                            <div class="text-sm font-medium mt-2
+                                @if($table->status == 'available') text-green-600
+                                @elseif($table->status == 'occupied') text-red-600
+                                @elseif($table->status == 'reserved') text-yellow-600
+                                @elseif($table->status == 'cleaning') text-gray-600
+                                @endif">
+                                @if($table->status == 'available') Tersedia
+                                @elseif($table->status == 'occupied') Terisi
+                                @elseif($table->status == 'reserved') Direservasi
+                                @elseif($table->status == 'cleaning') Maintenance
+                                @endif
+                            </div>
+
+                            <!-- Description -->
+                            <div class="text-xs text-gray-500 mt-2">
+                                {{ $table->description }}
+                            </div>
+
+                            <!-- Current Reservation/Order Info -->
+                            @if($table->status == 'reserved' && $table->todayReservation())
+                                <div class="text-xs text-gray-600 mt-1 font-medium">
+                                    {{ $table->todayReservation()->customer_name }}
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div class="flex space-x-1">
+                                <button onclick="event.stopPropagation(); editTable({{ $table->id }})" 
+                                        class="w-6 h-6 bg-blue-600 text-white rounded-full text-xs hover:bg-blue-700">
+                                    ✎
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
         </div>
 
         <!-- List View -->
@@ -177,8 +265,8 @@
                                     @endif">
                                     @if($table->status == 'available') Tersedia
                                     @elseif($table->status == 'occupied') Terisi
-                                    @elseif($table->status == 'reserved') Reserved
-                                    @elseif($table->status == 'maintenance') Maintenance
+                                    @elseif($table->status == 'reserved') Direservasi
+                                    @elseif($table->status == 'cleaning') Maintenance
                                     @endif
                                 </span>
                             </td>
@@ -186,10 +274,10 @@
                                 {{ $table->location ?? '-' }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                @if($table->currentReservation)
+                                @if($table->todayReservation())
                                     <div>
-                                        <div class="font-medium">{{ $table->currentReservation->customer_name }}</div>
-                                        <div class="text-gray-500">{{ $table->currentReservation->reservation_time->format('H:i') }}</div>
+                                        <div class="font-medium">{{ $table->todayReservation()->customer_name }}</div>
+                                        <div class="text-gray-500">{{ $table->todayReservation()->reservation_time->format('H:i') }}</div>
                                     </div>
                                 @elseif($table->currentOrder)
                                     <div>
@@ -242,7 +330,7 @@
             </div>
             <div class="flex items-center">
                 <div class="w-4 h-4 bg-yellow-500 rounded-full mr-2"></div>
-                <span class="text-sm text-gray-700">Reserved</span>
+                <span class="text-sm text-gray-700">Direservasi</span>
             </div>
             <div class="flex items-center">
                 <div class="w-4 h-4 bg-gray-500 rounded-full mr-2"></div>

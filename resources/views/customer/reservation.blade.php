@@ -73,11 +73,14 @@
                                         <select id="guest_count" name="guest_count" required
                                                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 @error('guest_count') border-red-300 @enderror">
                                             <option value="">Pilih jumlah tamu</option>
-                                            @for($i = 1; $i <= 20; $i++)
-                                                <option value="{{ $i }}" {{ old('guest_count') == $i ? 'selected' : '' }}>
-                                                    {{ $i }} {{ $i == 1 ? 'orang' : 'orang' }}
-                                                </option>
-                                            @endfor
+                                            <option value="2" {{ old('guest_count') == '2' ? 'selected' : '' }}>2 orang</option>
+                                            <option value="4" {{ old('guest_count') == '4' ? 'selected' : '' }}>4 orang</option>
+                                            <option value="6" {{ old('guest_count') == '6' ? 'selected' : '' }}>6 orang</option>
+                                            <option value="8" {{ old('guest_count') == '8' ? 'selected' : '' }}>8 orang</option>
+                                            <option value="10" {{ old('guest_count') == '10' ? 'selected' : '' }}>10 orang</option>
+                                            <option value="15" {{ old('guest_count') == '15' ? 'selected' : '' }}>15 orang</option>
+                                            <option value="20" {{ old('guest_count') == '20' ? 'selected' : '' }}>20 orang</option>
+                                            <option value="30" {{ old('guest_count') == '30' ? 'selected' : '' }}>30 orang</option>
                                         </select>
                                         @error('guest_count')
                                             <p class="mt-2 text-sm text-red-600">{{ $message }}</p>

@@ -114,11 +114,14 @@
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 required>
                             <option value="">Pilih jumlah tamu</option>
-                            @for($i = 1; $i <= 12; $i++)
-                                <option value="{{ $i }}" {{ old('party_size') == $i ? 'selected' : '' }}>
-                                    {{ $i }} {{ $i == 1 ? 'orang' : 'orang' }}
-                                </option>
-                            @endfor
+                            <option value="2" {{ old('party_size') == '2' ? 'selected' : '' }}>2 orang</option>
+                            <option value="4" {{ old('party_size') == '4' ? 'selected' : '' }}>4 orang</option>
+                            <option value="6" {{ old('party_size') == '6' ? 'selected' : '' }}>6 orang</option>
+                            <option value="8" {{ old('party_size') == '8' ? 'selected' : '' }}>8 orang</option>
+                            <option value="10" {{ old('party_size') == '10' ? 'selected' : '' }}>10 orang</option>
+                            <option value="15" {{ old('party_size') == '15' ? 'selected' : '' }}>15 orang</option>
+                            <option value="20" {{ old('party_size') == '20' ? 'selected' : '' }}>20 orang</option>
+                            <option value="30" {{ old('party_size') == '30' ? 'selected' : '' }}>30 orang</option>
                         </select>
                         @error('party_size')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>

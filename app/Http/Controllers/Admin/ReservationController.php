@@ -70,7 +70,7 @@ class ReservationController extends Controller
             'customer_email' => 'nullable|email|max:255',
             'reservation_date' => 'required|date|after_or_equal:today',
             'reservation_time' => 'required|date_format:H:i',
-            'party_size' => 'required|integer|min:1|max:12',
+            'party_size' => 'required|integer|in:2,4,6,8,10,15,20,30',
             'table_id' => 'nullable|exists:tables,id',
             'special_requests' => 'nullable|string'
         ]);
@@ -147,7 +147,7 @@ class ReservationController extends Controller
             'customer_email' => 'nullable|email|max:255',
             'reservation_date' => 'required|date',
             'reservation_time' => 'required|date_format:H:i',
-            'party_size' => 'required|integer|min:1|max:12',
+            'party_size' => 'required|integer|in:2,4,6,8,10,15,20,30',
             'table_id' => 'nullable|exists:tables,id',
             'special_requests' => 'nullable|string'
         ]);

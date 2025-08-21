@@ -36,11 +36,14 @@
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 required>
                             <option value="">Pilih kapasitas</option>
-                            @for($i = 1; $i <= 12; $i++)
-                                <option value="{{ $i }}" {{ old('capacity') == $i ? 'selected' : '' }}>
-                                    {{ $i }} {{ $i == 1 ? 'orang' : 'orang' }}
-                                </option>
-                            @endfor
+                            <option value="2" {{ old('capacity') == '2' ? 'selected' : '' }}>2 orang</option>
+                            <option value="4" {{ old('capacity') == '4' ? 'selected' : '' }}>4 orang</option>
+                            <option value="6" {{ old('capacity') == '6' ? 'selected' : '' }}>6 orang</option>
+                            <option value="8" {{ old('capacity') == '8' ? 'selected' : '' }}>8 orang</option>
+                            <option value="10" {{ old('capacity') == '10' ? 'selected' : '' }}>10 orang</option>
+                            <option value="15" {{ old('capacity') == '15' ? 'selected' : '' }}>15 orang</option>
+                            <option value="20" {{ old('capacity') == '20' ? 'selected' : '' }}>20 orang</option>
+                            <option value="30" {{ old('capacity') == '30' ? 'selected' : '' }}>30 orang (VIP)</option>
                         </select>
                         @error('capacity')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>

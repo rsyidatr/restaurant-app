@@ -10,7 +10,14 @@ class TableController extends Controller
 {
     public function index()
     {
-        $tables = Table::orderBy('table_number')->paginate(12);
+        // Get all tables ordered by table number for layout display
+        $tables = Table::orderByRaw("
+            CASE 
+                WHEN table_number ~ '^[0-9]+$' THEN CAST(table_number AS INTEGER)
+                ELSE 999 
+            END, 
+            table_number
+        ")->get();
         
         $statusCounts = [
             'available' => Table::where('status', 'available')->count(),
@@ -19,7 +26,16 @@ class TableController extends Controller
             'cleaning' => Table::where('status', 'cleaning')->count(),
         ];
         
-        return view('admin.tables.index', compact('tables', 'statusCounts'));
+        // Additional stats for the dashboard
+        $stats = [
+            'available' => $statusCounts['available'],
+            'occupied' => $statusCounts['occupied'],
+            'reserved' => $statusCounts['reserved'],
+            'maintenance' => $statusCounts['cleaning'],
+            'total' => Table::count()
+        ];
+        
+        return view('admin.tables.index', compact('tables', 'statusCounts', 'stats'));
     }
     
     public function create()
@@ -31,7 +47,7 @@ class TableController extends Controller
     {
         $validated = $request->validate([
             'table_number' => 'required|integer|unique:tables',
-            'capacity' => 'required|integer|min:1|max:20',
+            'capacity' => 'required|integer|in:2,4,6,8,10,15,20,30',
             'status' => 'required|in:available,reserved,occupied,cleaning'
         ]);
         
@@ -49,7 +65,7 @@ class TableController extends Controller
     {
         $validated = $request->validate([
             'table_number' => 'required|integer|unique:tables,table_number,' . $table->id,
-            'capacity' => 'required|integer|min:1|max:20',
+            'capacity' => 'required|integer|in:2,4,6,8,10,15,20,30',
             'status' => 'required|in:available,reserved,occupied,cleaning'
         ]);
         
