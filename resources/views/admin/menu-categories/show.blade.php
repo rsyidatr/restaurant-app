@@ -7,11 +7,11 @@
         <div class="flex space-x-2">
             <a href="{{ route('admin.menu-categories.edit', $menuCategory) }}" 
                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
-                Edit
+                <i class="fas fa-edit mr-2"></i>Edit
             </a>
             <a href="{{ route('admin.menu-categories.index') }}" 
                class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg">
-                Kembali
+                <i class="fas fa-arrow-left mr-2"></i>Kembali
             </a>
         </div>
     </div>
@@ -58,7 +58,7 @@
                     <h2 class="text-xl font-semibold">Item Menu dalam Kategori</h2>
                     <a href="{{ route('admin.menu.create', ['category' => $menuCategory->id]) }}" 
                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">
-                        Tambah Item
+                        <i class="fas fa-plus mr-2"></i>Tambah Item
                     </a>
                 </div>
                 
@@ -98,11 +98,17 @@
                                                 {{ $item->is_available ? 'Tersedia' : 'Tidak Tersedia' }}
                                             </span>
                                         </td>
-                                        <td class="px-6 py-4 text-sm font-medium">
+                                        <td class="px-6 py-4 text-sm font-medium space-x-2">
                                             <a href="{{ route('admin.menu.show', $item) }}" 
-                                               class="text-blue-600 hover:text-blue-900 mr-3">Lihat</a>
+                                               class="text-blue-600 hover:text-blue-800 inline-block" 
+                                               title="Lihat Detail">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
                                             <a href="{{ route('admin.menu.edit', $item) }}" 
-                                               class="text-indigo-600 hover:text-indigo-900">Edit</a>
+                                               class="text-yellow-600 hover:text-yellow-800 inline-block" 
+                                               title="Edit Menu">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -114,7 +120,7 @@
                         <p class="text-lg">Belum ada item menu dalam kategori ini</p>
                         <a href="{{ route('admin.menu.create', ['category' => $menuCategory->id]) }}" 
                            class="mt-4 inline-block bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
-                            Tambah Item Pertama
+                            <i class="fas fa-plus mr-2"></i>Tambah Item Pertama
                         </a>
                     </div>
                 @endif

@@ -60,23 +60,28 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {{ $category->created_at->format('d M Y') }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <div class="flex space-x-2">
-                                    <a href="{{ route('admin.menu-categories.show', $category) }}" 
-                                       class="text-blue-600 hover:text-blue-900">Lihat</a>
-                                    <a href="{{ route('admin.menu-categories.edit', $category) }}" 
-                                       class="text-indigo-600 hover:text-indigo-900">Edit</a>
-                                    <form action="{{ route('admin.menu-categories.destroy', $category) }}" 
-                                          method="POST" class="inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" 
-                                                class="text-red-600 hover:text-red-900"
-                                                onclick="return confirm('Yakin ingin menghapus kategori ini?')">
-                                            Hapus
-                                        </button>
-                                    </form>
-                                </div>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                <a href="{{ route('admin.menu-categories.show', $category) }}" 
+                                   class="text-blue-600 hover:text-blue-800 inline-block" 
+                                   title="Lihat Detail">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ route('admin.menu-categories.edit', $category) }}" 
+                                   class="text-yellow-600 hover:text-yellow-800 inline-block" 
+                                   title="Edit Kategori">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form action="{{ route('admin.menu-categories.destroy', $category) }}" 
+                                      method="POST" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" 
+                                            class="text-red-600 hover:text-red-800 inline-block"
+                                            title="Hapus Kategori"
+                                            onclick="return confirm('Yakin ingin menghapus kategori ini?')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                     @empty
