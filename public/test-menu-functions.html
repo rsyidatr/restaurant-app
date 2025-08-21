@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Menu Functions</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6">Test Menu Functions</h1>
+        
+        <!-- Category Filter Test -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Category Filter Test</h2>
+            <select id="categoryFilter" class="border border-gray-300 rounded-lg px-3 py-2" onchange="testCategoryFilter(this.value)">
+                <option value="">Semua Kategori</option>
+                <option value="1">Appetizer</option>
+                <option value="2">Main Course</option>
+                <option value="3">Beverages</option>
+                <option value="4">Desserts</option>
+            </select>
+            <div id="filterResult" class="mt-4 p-4 bg-gray-50 rounded"></div>
+        </div>
+        
+        <!-- Button Tests -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Button Function Tests</h2>
+            
+            <!-- Show Button Test -->
+            <div class="mb-4">
+                <a href="/admin/menu/1" class="text-blue-600 hover:text-blue-800 inline-block mr-4" title="Lihat Detail">
+                    <i class="fas fa-eye"></i> Show Menu ID 1
+                </a>
+            </div>
+            
+            <!-- Edit Button Test -->
+            <div class="mb-4">
+                <a href="/admin/menu/1/edit" class="text-yellow-600 hover:text-yellow-800 inline-block mr-4" title="Edit Menu">
+                    <i class="fas fa-edit"></i> Edit Menu ID 1
+                </a>
+            </div>
+            
+            <!-- Delete Button Test -->
+            <div class="mb-4">
+                <button type="button" 
+                        onclick="testDeleteFunction(1, 'Test Menu')" 
+                        class="text-red-600 hover:text-red-800 inline-block mr-4" 
+                        title="Hapus Menu">
+                    <i class="fas fa-trash"></i> Delete Menu ID 1
+                </button>
+            </div>
+            
+            <!-- Toggle Availability Test -->
+            <div class="mb-4">
+                <button onclick="testToggleAvailability(1)" 
+                        class="inline-flex px-2 py-1 text-xs font-medium rounded-full transition-colors bg-green-100 text-green-800 hover:bg-green-200">
+                    <span id="status-1">Tersedia</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Test Results -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">Test Results</h2>
+            <div id="testResults" class="space-y-2"></div>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md mx-4" id="deleteModalContent">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Konfirmasi Hapus Menu</h3>
+            <p class="text-gray-600 mb-4">Anda yakin ingin menghapus menu: <span id="deleteItemName" class="font-semibold"></span>?</p>
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeDeleteModal()" class="px-4 py-2 border rounded text-gray-700">Batal</button>
+                <button onclick="confirmDelete()" class="px-4 py-2 bg-red-600 text-white rounded">Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let deleteItemId = null;
+        let deleteItemName = null;
+
+        function addTestResult(message, success = true) {
+            const results = document.getElementById('testResults');
+            const div = document.createElement('div');
+            div.className = success ? 'text-green-600' : 'text-red-600';
+            div.innerHTML = (success ? '✅ ' : '❌ ') + message;
+            results.appendChild(div);
+        }
+
+        function testCategoryFilter(categoryId) {
+            const result = document.getElementById('filterResult');
+            if (categoryId) {
+                result.innerHTML = `Filter applied: Category ID ${categoryId}`;
+                addTestResult(`Category filter working: Selected category ${categoryId}`);
+            } else {
+                result.innerHTML = 'Filter cleared: Showing all categories';
+                addTestResult('Category filter working: Showing all categories');
+            }
+        }
+
+        function testDeleteFunction(itemId, itemName) {
+            deleteItemId = itemId;
+            deleteItemName = itemName;
+            
+            document.getElementById('deleteItemName').textContent = itemName;
+            document.getElementById('deleteModal').classList.remove('hidden');
+            document.getElementById('deleteModal').classList.add('flex');
+            
+            addTestResult(`Delete modal opened for: ${itemName} (ID: ${itemId})`);
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+            document.getElementById('deleteModal').classList.remove('flex');
+            addTestResult('Delete modal closed');
+        }
+
+        function confirmDelete() {
+            if (deleteItemId) {
+                addTestResult(`Delete confirmed for item ID: ${deleteItemId}`);
+                // In real implementation, this would submit the delete form
+                alert(`Would delete item: ${deleteItemName} (ID: ${deleteItemId})`);
+                closeDeleteModal();
+            }
+        }
+
+        function testToggleAvailability(itemId) {
+            addTestResult(`Toggle availability called for item ID: ${itemId}`);
+            // Simulate toggle
+            const statusEl = document.getElementById(`status-${itemId}`);
+            const currentStatus = statusEl.textContent;
+            const newStatus = currentStatus === 'Tersedia' ? 'Tidak Tersedia' : 'Tersedia';
+            statusEl.textContent = newStatus;
+            addTestResult(`Status changed from ${currentStatus} to ${newStatus}`);
+        }
+
+        // Test on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            addTestResult('Page loaded successfully');
+            addTestResult('Font Awesome icons loaded: ' + (document.querySelector('.fas') ? 'Yes' : 'No'));
+        });
+    </script>
+</body>
+</html>

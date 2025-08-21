@@ -34,15 +34,17 @@
         </div>
         
         <!-- Filter -->
-        <div class="flex space-x-4">
+        {{-- <div class="flex space-x-4">
             <select class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-black focus:border-black" 
                     onchange="filterByCategory(this.value)">
                 <option value="">Semua Kategori</option>
                 @foreach($categories as $category)
-                    <option value="{{ $category->id }}">{{ $category->name }}</option>
+                    <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
+                        {{ $category->name }}
+                    </option>
                 @endforeach
             </select>
-        </div>
+        </div> --}}
     </div>
     
     <!-- Menu Items Grid -->
@@ -116,13 +118,16 @@
                                title="Edit Menu">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <button type="button" 
-                                    onclick="alert('Button clicked for item: {{ $item->id }}'); deleteMenuItem({{ $item->id }}, {{ json_encode($item->name) }})" 
-                                    class="text-red-600 hover:text-red-800 inline-block" 
-                                    title="Hapus Menu"
-                                    id="delete-btn-{{ $item->id }}">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                            <form action="{{ route('admin.menu.destroy', $item) }}" method="POST" class="inline" id="delete-form-{{ $item->id }}">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" 
+                                        onclick="return confirm('Yakin ingin menghapus menu {{ addslashes($item->name) }}?')"
+                                        class="text-red-600 hover:text-red-800 inline-block" 
+                                        title="Hapus Menu">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
                         </td>
                     </tr>
                     @empty
@@ -149,37 +154,6 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-6 max-w-md mx-4 transform transition-all duration-300 scale-95" id="deleteModalContent">
-        <div class="flex items-center mb-4">
-            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                <i class="fas fa-exclamation-triangle text-red-600"></i>
-            </div>
-            <h3 class="ml-3 text-lg font-medium text-gray-900">Konfirmasi Hapus Menu</h3>
-        </div>
-        
-        <div class="mb-6">
-            <p class="text-gray-600 mb-2">Anda yakin ingin menghapus menu item berikut?</p>
-            <div class="bg-gray-50 p-3 rounded-lg">
-                <p class="font-semibold text-gray-900" id="deleteItemName"></p>
-                <p class="text-sm text-gray-500">Tindakan ini tidak dapat dibatalkan dan akan menghapus menu dari daftar customer.</p>
-            </div>
-        </div>
-        
-        <div class="flex justify-end space-x-3">
-            <button onclick="closeDeleteModal()" 
-                    class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
-                <i class="fas fa-times mr-2"></i>Batal
-            </button>
-            <button onclick="confirmDelete()" 
-                    class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
-                <i class="fas fa-trash mr-2"></i>Hapus Menu
-            </button>
-        </div>
-    </div>
-</div>
-
 <!-- Toast Notification -->
 <div id="toast" class="fixed top-4 right-4 transform translate-x-full transition-transform duration-300 z-50">
     <div class="bg-white border-l-4 rounded-lg shadow-lg p-4 max-w-sm">
@@ -199,9 +173,6 @@
 
 @push('scripts')
 <script>
-let deleteItemId = null;
-let deleteItemName = null;
-
 // Toggle availability function
 function toggleAvailability(itemId) {
     fetch(`/admin/menu/${itemId}/toggle-availability`, {
@@ -236,115 +207,6 @@ function toggleAvailability(itemId) {
     });
 }
 
-// Delete menu item functions
-function deleteMenuItem(itemId, itemName) {
-    console.log('Delete button clicked:', itemId, itemName); // Debug log
-    
-    deleteItemId = itemId;
-    deleteItemName = itemName;
-    
-    // Set the item name in modal
-    const deleteItemNameElement = document.getElementById('deleteItemName');
-    if (deleteItemNameElement) {
-        deleteItemNameElement.textContent = itemName;
-    } else {
-        console.error('deleteItemName element not found');
-        return;
-    }
-    
-    const modal = document.getElementById('deleteModal');
-    const modalContent = document.getElementById('deleteModalContent');
-    
-    if (!modal || !modalContent) {
-        console.error('Modal elements not found');
-        return;
-    }
-    
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    
-    // Animation
-    setTimeout(() => {
-        modalContent.classList.remove('scale-95');
-        modalContent.classList.add('scale-100');
-    }, 10);
-}
-
-function closeDeleteModal() {
-    const modal = document.getElementById('deleteModal');
-    const modalContent = document.getElementById('deleteModalContent');
-    
-    modalContent.classList.remove('scale-100');
-    modalContent.classList.add('scale-95');
-    
-    setTimeout(() => {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }, 150);
-    
-    deleteItemId = null;
-    deleteItemName = null;
-}
-
-function confirmDelete() {
-    console.log('Confirm delete clicked:', deleteItemId); // Debug log
-    
-    if (!deleteItemId) {
-        console.error('No item ID to delete');
-        return;
-    }
-    
-    // Show loading state
-    const deleteButton = document.querySelector('#deleteModal button[onclick="confirmDelete()"]');
-    if (deleteButton) {
-        const originalText = deleteButton.innerHTML;
-        deleteButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menghapus...';
-        deleteButton.disabled = true;
-    }
-    
-    try {
-        // Create and submit form
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = `/admin/menu/${deleteItemId}`;
-        form.style.display = 'none'; // Hide form
-        
-        // Add method field for DELETE
-        const methodInput = document.createElement('input');
-        methodInput.type = 'hidden';
-        methodInput.name = '_method';
-        methodInput.value = 'DELETE';
-        form.appendChild(methodInput);
-        
-        // Add CSRF token
-        const tokenInput = document.createElement('input');
-        tokenInput.type = 'hidden';
-        tokenInput.name = '_token';
-        tokenInput.value = '{{ csrf_token() }}';
-        form.appendChild(tokenInput);
-        
-        console.log('Form created with action:', form.action);
-        console.log('CSRF token:', tokenInput.value);
-        console.log('Method input:', methodInput.value);
-        
-        // Append to body and submit
-        document.body.appendChild(form);
-        
-        console.log('Submitting form to:', form.action); // Debug log
-        form.submit();
-        
-    } catch (error) {
-        console.error('Error submitting delete form:', error);
-        showToast('Terjadi kesalahan saat menghapus menu', 'error');
-        
-        // Restore button state
-        if (deleteButton) {
-            deleteButton.innerHTML = '<i class="fas fa-trash mr-2"></i>Hapus Menu';
-            deleteButton.disabled = false;
-        }
-    }
-}
-
 // Toast notification functions
 function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
@@ -376,21 +238,22 @@ function hideToast() {
 
 // Filter function
 function filterByCategory(categoryId) {
-    let url = new URL(window.location);
-    if (categoryId) {
+    // Get current URL
+    let url = new URL(window.location.href);
+    
+    // Update or remove category parameter
+    if (categoryId && categoryId !== '') {
         url.searchParams.set('category', categoryId);
     } else {
         url.searchParams.delete('category');
     }
-    window.location = url;
+    
+    // Remove page parameter to go back to first page when filtering
+    url.searchParams.delete('page');
+    
+    // Navigate to the new URL
+    window.location.href = url.toString();
 }
-
-// Close modal when clicking outside
-document.getElementById('deleteModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeDeleteModal();
-    }
-});
 
 // Show success message if exists
 @if(session('success'))
@@ -404,16 +267,6 @@ document.getElementById('deleteModal').addEventListener('click', function(e) {
         showToast('{{ session('error') }}', 'error');
     });
 @endif
-
-// Debug: Log all delete buttons when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Page loaded, checking delete buttons...');
-    const deleteButtons = document.querySelectorAll('[id^="delete-btn-"]');
-    console.log('Found delete buttons:', deleteButtons.length);
-    deleteButtons.forEach(button => {
-        console.log('Button:', button.id, 'onclick:', button.getAttribute('onclick'));
-    });
-});
 </script>
 @endpush
 @endsection

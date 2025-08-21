@@ -165,7 +165,13 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     });
     
     // Menu Management
-    Route::resource('menu', AdminMenuController::class);
+    Route::get('menu', [AdminMenuController::class, 'index'])->name('menu.index');
+    Route::get('menu/create', [AdminMenuController::class, 'create'])->name('menu.create');
+    Route::post('menu', [AdminMenuController::class, 'store'])->name('menu.store');
+    Route::get('menu/{menuItem}', [AdminMenuController::class, 'show'])->name('menu.show');
+    Route::get('menu/{menuItem}/edit', [AdminMenuController::class, 'edit'])->name('menu.edit');
+    Route::put('menu/{menuItem}', [AdminMenuController::class, 'update'])->name('menu.update');
+    Route::delete('menu/{menuItem}', [AdminMenuController::class, 'destroy'])->name('menu.destroy');
     Route::post('menu/{menuItem}/toggle-availability', [AdminMenuController::class, 'toggleAvailability'])->name('menu.toggle-availability');
     
     // Order Management
