@@ -48,12 +48,12 @@
                     
                     <div>
                         <label class="block text-sm font-medium text-gray-600">Tanggal Reservasi</label>
-                        <p class="text-lg font-semibold text-gray-800">{{ $reservation->reservation_date->format('d/m/Y') }}</p>
+                        <p class="text-lg font-semibold text-gray-800">{{ $reservation->reservation_time ? $reservation->reservation_time->format('d/m/Y') : '-' }}</p>
                     </div>
                     
                     <div>
                         <label class="block text-sm font-medium text-gray-600">Waktu Reservasi</label>
-                        <p class="text-lg font-semibold text-gray-800">{{ $reservation->reservation_time->format('H:i') }}</p>
+                        <p class="text-lg font-semibold text-gray-800">{{ $reservation->reservation_time ? $reservation->reservation_time->format('H:i') : '-' }}</p>
                     </div>
                     
                     <div>
@@ -72,7 +72,7 @@
                     
                     <div>
                         <label class="block text-sm font-medium text-gray-600">Dibuat pada</label>
-                        <p class="text-gray-800">{{ $reservation->created_at->format('d/m/Y H:i') }}</p>
+                        <p class="text-gray-800">{{ $reservation->created_at ? $reservation->created_at->format('d/m/Y H:i') : '-' }}</p>
                     </div>
                 </div>
                 
@@ -119,7 +119,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <h3 class="font-medium text-gray-900">Order #{{ $order->order_number }}</h3>
-                                <p class="text-sm text-gray-600">{{ $order->created_at->format('d/m/Y H:i') }}</p>
+                                <p class="text-sm text-gray-600">{{ $order->created_at ? $order->created_at->format('d/m/Y H:i') : '-' }}</p>
                                 <p class="text-sm text-gray-600">{{ $order->orderItems->count() }} items</p>
                             </div>
                             <div class="text-right">
@@ -146,6 +146,11 @@
                     </div>
                     @endforeach
                 </div>
+            </div>
+            @else
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Pesanan Terkait</h2>
+                <p class="text-gray-500 text-center py-4">Belum ada pesanan untuk reservasi ini.</p>
             </div>
             @endif
         </div>
@@ -285,28 +290,28 @@
                 <div class="space-y-3 text-sm">
                     <div class="flex justify-between">
                         <span class="text-gray-600">Dibuat:</span>
-                        <span class="font-medium">{{ $reservation->created_at->format('d/m/Y H:i') }}</span>
+                        <span class="font-medium">{{ $reservation->created_at ? $reservation->created_at->format('d/m/Y H:i') : '-' }}</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-600">Diperbarui:</span>
-                        <span class="font-medium">{{ $reservation->updated_at->format('d/m/Y H:i') }}</span>
+                        <span class="font-medium">{{ $reservation->updated_at ? $reservation->updated_at->format('d/m/Y H:i') : '-' }}</span>
                     </div>
                     @if($reservation->confirmed_at)
                     <div class="flex justify-between">
                         <span class="text-gray-600">Dikonfirmasi:</span>
-                        <span class="font-medium">{{ $reservation->confirmed_at->format('d/m/Y H:i') }}</span>
+                        <span class="font-medium">{{ $reservation->confirmed_at ? $reservation->confirmed_at->format('d/m/Y H:i') : '-' }}</span>
                     </div>
                     @endif
                     @if($reservation->seated_at)
                     <div class="flex justify-between">
                         <span class="text-gray-600">Check-in:</span>
-                        <span class="font-medium">{{ $reservation->seated_at->format('d/m/Y H:i') }}</span>
+                        <span class="font-medium">{{ $reservation->seated_at ? $reservation->seated_at->format('d/m/Y H:i') : '-' }}</span>
                     </div>
                     @endif
                     @if($reservation->completed_at)
                     <div class="flex justify-between">
                         <span class="text-gray-600">Selesai:</span>
-                        <span class="font-medium">{{ $reservation->completed_at->format('d/m/Y H:i') }}</span>
+                        <span class="font-medium">{{ $reservation->completed_at ? $reservation->completed_at->format('d/m/Y H:i') : '-' }}</span>
                     </div>
                     @endif
                 </div>

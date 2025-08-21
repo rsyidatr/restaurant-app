@@ -131,15 +131,13 @@
                                 <!-- Table Preference -->
                                 <div class="mt-6">
                                     <label for="table_preference" class="block text-sm font-medium text-gray-700 mb-2">
-                                        Preferensi Meja
+                                        Preferensi Area
                                     </label>
                                     <select id="table_preference" name="table_preference"
                                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 @error('table_preference') border-red-300 @enderror">
-                                        <option value="">Pilih preferensi meja (opsional)</option>
-                                        <option value="window" {{ old('table_preference') == 'window' ? 'selected' : '' }}>Dekat jendela</option>
-                                        <option value="quiet" {{ old('table_preference') == 'quiet' ? 'selected' : '' }}>Area tenang</option>
-                                        <option value="center" {{ old('table_preference') == 'center' ? 'selected' : '' }}>Area tengah</option>
-                                        <option value="outdoor" {{ old('table_preference') == 'outdoor' ? 'selected' : '' }}>Outdoor/teras</option>
+                                        <option value="">Pilih preferensi area (opsional)</option>
+                                        <option value="non_smoking" {{ old('table_preference') == 'non_smoking' ? 'selected' : '' }}>Non Smoking</option>
+                                        <option value="smoking" {{ old('table_preference') == 'smoking' ? 'selected' : '' }}>Smoking</option>
                                     </select>
                                     @error('table_preference')
                                         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>

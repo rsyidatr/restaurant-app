@@ -28,11 +28,14 @@ class ReservationController extends Controller
             $query->whereDate('reservation_time', '>=', today());
         }
         
+        // Filter by table
+        if ($request->has('table_id') && $request->table_id != '') {
+            $query->where('table_id', $request->table_id);
+        }
+        
         // Search by customer name
         if ($request->has('search') && $request->search != '') {
-            $query->whereHas('user', function($userQuery) use ($request) {
-                $userQuery->where('name', 'ILIKE', '%' . $request->search . '%');
-            });
+            $query->where('customer_name', 'ILIKE', '%' . $request->search . '%');
         }
         
         $reservations = $query->orderBy('reservation_time', 'asc')->paginate(15);
@@ -53,7 +56,7 @@ class ReservationController extends Controller
 
     public function create()
     {
-        $tables = Table::where('status', 'available')->orderBy('table_number')->get();
+        $tables = Table::bookable()->where('status', 'available')->orderBy('table_number')->get();
         $customers = User::where('role', 'customer')->orderBy('name')->get();
         
         return view('admin.reservations.create', compact('tables', 'customers'));
@@ -62,37 +65,61 @@ class ReservationController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'table_id' => 'required|exists:tables,id',
-            'reservation_time' => 'required|date|after:now',
-            'party_size' => 'required|integer|min:1',
-            'notes' => 'nullable|string'
+            'customer_name' => 'required|string|max:255',
+            'customer_phone' => 'required|string|max:20',
+            'customer_email' => 'nullable|email|max:255',
+            'reservation_date' => 'required|date|after_or_equal:today',
+            'reservation_time' => 'required|date_format:H:i',
+            'party_size' => 'required|integer|min:1|max:12',
+            'table_id' => 'nullable|exists:tables,id',
+            'special_requests' => 'nullable|string'
         ]);
 
-        // Check if table is available at the requested time
-        $conflictingReservation = Reservation::where('table_id', $request->table_id)
-                                            ->where('status', 'confirmed')
-                                            ->whereBetween('reservation_time', [
-                                                Carbon::parse($request->reservation_time)->subHours(2),
-                                                Carbon::parse($request->reservation_time)->addHours(2)
-                                            ])
-                                            ->exists();
+        // Combine date and time
+        $reservationDateTime = Carbon::parse($request->reservation_date . ' ' . $request->reservation_time);
 
-        if ($conflictingReservation) {
+        // Check if reservation time is in the future
+        if ($reservationDateTime->isPast()) {
             return redirect()->back()
                             ->withInput()
-                            ->with('error', 'Meja sudah ada reservasi pada waktu tersebut. Pilih waktu lain.');
+                            ->with('error', 'Waktu reservasi harus di masa depan.');
         }
 
-        // Check table capacity
-        $table = Table::find($request->table_id);
-        if ($table->capacity < $request->party_size) {
-            return redirect()->back()
-                            ->withInput()
-                            ->with('error', 'Kapasitas meja tidak mencukupi untuk jumlah tamu.');
+        // Check if table is available at the requested time (if table is specified)
+        if ($request->table_id) {
+            $conflictingReservation = Reservation::where('table_id', $request->table_id)
+                                                ->where('status', 'confirmed')
+                                                ->whereBetween('reservation_time', [
+                                                    $reservationDateTime->copy()->subHours(2),
+                                                    $reservationDateTime->copy()->addHours(2)
+                                                ])
+                                                ->exists();
+
+            if ($conflictingReservation) {
+                return redirect()->back()
+                                ->withInput()
+                                ->with('error', 'Meja sudah ada reservasi pada waktu tersebut. Pilih waktu lain.');
+            }
+
+            // Check table capacity
+            $table = Table::find($request->table_id);
+            if ($table->capacity < $request->party_size) {
+                return redirect()->back()
+                                ->withInput()
+                                ->with('error', 'Kapasitas meja tidak mencukupi untuk jumlah tamu.');
+            }
         }
 
-        Reservation::create($request->all());
+        Reservation::create([
+            'customer_name' => $request->customer_name,
+            'customer_phone' => $request->customer_phone,
+            'customer_email' => $request->customer_email,
+            'reservation_time' => $reservationDateTime,
+            'party_size' => $request->party_size,
+            'table_id' => $request->table_id,
+            'special_requests' => $request->special_requests,
+            'status' => 'pending'
+        ]);
 
         return redirect()->route('admin.reservations.index')
                         ->with('success', 'Reservasi berhasil dibuat.');
@@ -100,8 +127,11 @@ class ReservationController extends Controller
 
     public function edit(Reservation $reservation)
     {
-        $tables = Table::where('status', 'available')
-                      ->orWhere('id', $reservation->table_id)
+        $tables = Table::bookable()
+                      ->where(function($query) use ($reservation) {
+                          $query->where('status', 'available')
+                                ->orWhere('id', $reservation->table_id);
+                      })
                       ->orderBy('table_number')
                       ->get();
         $customers = User::where('role', 'customer')->orderBy('name')->get();
@@ -112,38 +142,61 @@ class ReservationController extends Controller
     public function update(Request $request, Reservation $reservation)
     {
         $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'table_id' => 'required|exists:tables,id',
-            'reservation_time' => 'required|date|after:now',
-            'party_size' => 'required|integer|min:1',
-            'notes' => 'nullable|string'
+            'customer_name' => 'required|string|max:255',
+            'customer_phone' => 'required|string|max:20',
+            'customer_email' => 'nullable|email|max:255',
+            'reservation_date' => 'required|date',
+            'reservation_time' => 'required|date_format:H:i',
+            'party_size' => 'required|integer|min:1|max:12',
+            'table_id' => 'nullable|exists:tables,id',
+            'special_requests' => 'nullable|string'
         ]);
 
-        // Check if table is available at the requested time (excluding current reservation)
-        $conflictingReservation = Reservation::where('table_id', $request->table_id)
-                                            ->where('id', '!=', $reservation->id)
-                                            ->where('status', 'confirmed')
-                                            ->whereBetween('reservation_time', [
-                                                Carbon::parse($request->reservation_time)->subHours(2),
-                                                Carbon::parse($request->reservation_time)->addHours(2)
-                                            ])
-                                            ->exists();
+        // Combine date and time
+        $reservationDateTime = Carbon::parse($request->reservation_date . ' ' . $request->reservation_time);
 
-        if ($conflictingReservation) {
+        // Check if reservation time is in the future (only for pending reservations)
+        if ($reservation->status === 'pending' && $reservationDateTime->isPast()) {
             return redirect()->back()
                             ->withInput()
-                            ->with('error', 'Meja sudah ada reservasi pada waktu tersebut. Pilih waktu lain.');
+                            ->with('error', 'Waktu reservasi harus di masa depan.');
         }
 
-        // Check table capacity
-        $table = Table::find($request->table_id);
-        if ($table->capacity < $request->party_size) {
-            return redirect()->back()
-                            ->withInput()
-                            ->with('error', 'Kapasitas meja tidak mencukupi untuk jumlah tamu.');
+        // Check if table is available at the requested time (excluding current reservation and if table is specified)
+        if ($request->table_id) {
+            $conflictingReservation = Reservation::where('table_id', $request->table_id)
+                                                ->where('id', '!=', $reservation->id)
+                                                ->where('status', 'confirmed')
+                                                ->whereBetween('reservation_time', [
+                                                    $reservationDateTime->copy()->subHours(2),
+                                                    $reservationDateTime->copy()->addHours(2)
+                                                ])
+                                                ->exists();
+
+            if ($conflictingReservation) {
+                return redirect()->back()
+                                ->withInput()
+                                ->with('error', 'Meja sudah ada reservasi pada waktu tersebut. Pilih waktu lain.');
+            }
+
+            // Check table capacity
+            $table = Table::find($request->table_id);
+            if ($table->capacity < $request->party_size) {
+                return redirect()->back()
+                                ->withInput()
+                                ->with('error', 'Kapasitas meja tidak mencukupi untuk jumlah tamu.');
+            }
         }
 
-        $reservation->update($request->all());
+        $reservation->update([
+            'customer_name' => $request->customer_name,
+            'customer_phone' => $request->customer_phone,
+            'customer_email' => $request->customer_email,
+            'reservation_time' => $reservationDateTime,
+            'party_size' => $request->party_size,
+            'table_id' => $request->table_id,
+            'special_requests' => $request->special_requests
+        ]);
 
         return redirect()->route('admin.reservations.index')
                         ->with('success', 'Reservasi berhasil diperbarui.');
@@ -151,47 +204,17 @@ class ReservationController extends Controller
     
     public function show(Reservation $reservation)
     {
-        $reservation->load(['user', 'table', 'orders.orderItems.menuItem']);
+        $reservation->load(['user', 'table']);
+        
+        // Load orders safely - only if reservation_id column exists and has data
+        try {
+            $reservation->load(['orders.orderItems.menuItem']);
+        } catch (\Exception $e) {
+            // If there's an error loading orders, just continue without them
+            // This handles cases where reservation_id column doesn't exist yet
+        }
         
         return view('admin.reservations.show', compact('reservation'));
-    }
-    
-    public function confirm(Reservation $reservation)
-    {
-        $reservation->update(['status' => 'confirmed']);
-        
-        // Update table status to reserved
-        $reservation->table->update(['status' => 'reserved']);
-
-        return redirect()->back()
-                        ->with('success', 'Reservasi berhasil dikonfirmasi.');
-    }
-
-    public function cancel(Reservation $reservation)
-    {
-        $reservation->update(['status' => 'cancelled']);
-        
-        // If table was reserved, make it available
-        if ($reservation->table->status === 'reserved') {
-            $reservation->table->update(['status' => 'available']);
-        }
-
-        return redirect()->back()
-                        ->with('success', 'Reservasi berhasil dibatalkan.');
-    }
-
-    public function checkIn(Reservation $reservation)
-    {
-        if ($reservation->status !== 'confirmed') {
-            return redirect()->back()
-                            ->with('error', 'Hanya reservasi yang sudah dikonfirmasi yang bisa check-in.');
-        }
-
-        // Update table status to occupied
-        $reservation->table->update(['status' => 'occupied']);
-
-        return redirect()->back()
-                        ->with('success', 'Customer berhasil check-in. Meja sekarang ditempati.');
     }
 
     public function destroy(Reservation $reservation)
@@ -214,27 +237,44 @@ class ReservationController extends Controller
     
     public function updateStatus(Request $request, Reservation $reservation)
     {
-        $validated = $request->validate([
-            'status' => 'required|in:pending,confirmed,cancelled'
-        ]);
-        
-        $oldStatus = $reservation->status;
-        $reservation->update($validated);
-        
-        // Update table status based on reservation status
-        if ($reservation->table) {
-            if ($validated['status'] === 'confirmed' && $oldStatus !== 'confirmed') {
-                $reservation->table->update(['status' => 'reserved']);
-            } elseif ($validated['status'] === 'cancelled' && $oldStatus === 'confirmed') {
-                $reservation->table->update(['status' => 'available']);
+        try {
+            $validated = $request->validate([
+                'status' => 'required|in:pending,confirmed,seated,completed,cancelled,no_show'
+            ]);
+            
+            $oldStatus = $reservation->status;
+            $newStatus = $validated['status'];
+            
+            $reservation->update(['status' => $newStatus]);
+            
+            // Update table status based on reservation status
+            if ($reservation->table) {
+                if ($newStatus === 'confirmed' && $oldStatus !== 'confirmed') {
+                    $reservation->table->update(['status' => 'reserved']);
+                } elseif ($newStatus === 'seated' && $oldStatus === 'confirmed') {
+                    $reservation->table->update(['status' => 'occupied']);
+                } elseif ($newStatus === 'completed' && in_array($oldStatus, ['seated', 'confirmed'])) {
+                    $reservation->table->update(['status' => 'available']);
+                } elseif ($newStatus === 'cancelled' && $oldStatus === 'confirmed') {
+                    $reservation->table->update(['status' => 'available']);
+                }
             }
+            
+            // Generate appropriate success message
+            $messages = [
+                'confirmed' => 'Reservasi berhasil dikonfirmasi!',
+                'seated' => 'Customer berhasil check-in!',
+                'completed' => 'Reservasi berhasil diselesaikan!',
+                'cancelled' => 'Reservasi berhasil dibatalkan!',
+                'no_show' => 'Status reservasi diubah menjadi tidak hadir!'
+            ];
+            
+            $message = $messages[$newStatus] ?? 'Status reservasi berhasil diperbarui!';
+            
+            return redirect()->back()->with('success', $message);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Status reservasi berhasil diperbarui',
-            'status' => $reservation->status
-        ]);
     }
     
     public function assignTable(Request $request, Reservation $reservation)

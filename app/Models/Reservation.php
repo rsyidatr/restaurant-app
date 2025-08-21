@@ -26,6 +26,18 @@ class Reservation extends Model
         'party_size' => 'integer'
     ];
 
+    // Accessor untuk reservation_date
+    public function getReservationDateAttribute()
+    {
+        return $this->reservation_time ? $this->reservation_time->format('Y-m-d') : null;
+    }
+
+    // Accessor untuk reservation_time dalam format waktu saja
+    public function getReservationTimeFormattedAttribute()
+    {
+        return $this->reservation_time ? $this->reservation_time->format('H:i') : null;
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

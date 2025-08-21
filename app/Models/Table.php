@@ -38,10 +38,35 @@ class Table extends Model
         return $this->hasMany(Reservation::class);
     }
 
+    // Relationship dengan TableHistory
+    public function histories()
+    {
+        return $this->hasMany(TableHistory::class);
+    }
+
     // Scope untuk meja yang tersedia
     public function scopeAvailable($query)
     {
-        return $query->where('status', 'available');
+        return $query->where('status', 'available')
+                     ->whereDoesntHave('histories', function($q) {
+                         $q->where('status', 'inactive')
+                           ->where(function($subQ) {
+                               $subQ->whereNull('end_date')
+                                    ->orWhere('end_date', '>', now());
+                           });
+                     });
+    }
+
+    // Scope untuk meja yang bisa dipesen (tidak sedang dalam riwayat nonaktif)
+    public function scopeBookable($query)
+    {
+        return $query->whereDoesntHave('histories', function($q) {
+            $q->where('status', 'inactive')
+              ->where(function($subQ) {
+                  $subQ->whereNull('end_date')
+                       ->orWhere('end_date', '>', now());
+              });
+        });
     }
 
     // Check apakah meja tersedia

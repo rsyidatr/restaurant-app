@@ -89,13 +89,11 @@
                                 <div class="space-y-2 text-sm">
                                     @if(!empty($reservationData['table_preference']))
                                     <div>
-                                        <span class="text-gray-600">Preferensi Meja:</span>
+                                        <span class="text-gray-600">Preferensi Area:</span>
                                         <span class="font-medium">
                                             @switch($reservationData['table_preference'])
-                                                @case('window') Dekat jendela @break
-                                                @case('quiet') Area tenang @break
-                                                @case('center') Area tengah @break
-                                                @case('outdoor') Outdoor/teras @break
+                                                @case('smoking') Smoking @break
+                                                @case('non_smoking') Non Smoking @break
                                                 @default {{ $reservationData['table_preference'] }}
                                             @endswitch
                                         </span>

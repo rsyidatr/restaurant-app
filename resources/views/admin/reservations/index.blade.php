@@ -130,37 +130,62 @@
                                 @endif
                             </span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                            <a href="{{ route('admin.reservations.show', $reservation) }}" 
-                               class="text-blue-600 hover:text-blue-900">Detail</a>
-                            
-                            @if($reservation->status == 'pending')
-                                <form action="{{ route('admin.reservations.updateStatus', $reservation) }}" method="POST" class="inline">
-                                    @csrf
-                                    @method('PUT')
-                                    <input type="hidden" name="status" value="confirmed">
-                                    <button type="submit" class="text-green-600 hover:text-green-900">Konfirmasi</button>
-                                </form>
-                            @elseif($reservation->status == 'confirmed')
-                                <form action="{{ route('admin.reservations.updateStatus', $reservation) }}" method="POST" class="inline">
-                                    @csrf
-                                    @method('PUT')
-                                    <input type="hidden" name="status" value="seated">
-                                    <button type="submit" class="text-purple-600 hover:text-purple-900">Check-in</button>
-                                </form>
-                            @elseif($reservation->status == 'seated')
-                                <form action="{{ route('admin.reservations.updateStatus', $reservation) }}" method="POST" class="inline">
-                                    @csrf
-                                    @method('PUT')
-                                    <input type="hidden" name="status" value="completed">
-                                    <button type="submit" class="text-gray-600 hover:text-gray-900">Selesai</button>
-                                </form>
-                            @endif
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div class="flex items-center space-x-2">
+                                <!-- Detail Button -->
+                                <a href="{{ route('admin.reservations.show', $reservation) }}" 
+                                   class="text-blue-600 hover:text-blue-900 p-2 rounded-full hover:bg-blue-100 transition-colors"
+                                   title="Lihat Detail">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                
+                                @if($reservation->status == 'pending')
+                                    <!-- Konfirmasi Button -->
+                                    <form action="{{ route('admin.reservations.updateStatus', $reservation) }}" method="POST" class="inline">
+                                        @csrf
+                                        @method('PUT')
+                                        <input type="hidden" name="status" value="confirmed">
+                                        <button type="submit" 
+                                                class="text-green-600 hover:text-green-900 p-2 rounded-full hover:bg-green-100 transition-colors"
+                                                title="Konfirmasi Reservasi">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+                                @elseif($reservation->status == 'confirmed')
+                                    <!-- Check-in Button -->
+                                    <form action="{{ route('admin.reservations.updateStatus', $reservation) }}" method="POST" class="inline">
+                                        @csrf
+                                        @method('PUT')
+                                        <input type="hidden" name="status" value="seated">
+                                        <button type="submit" 
+                                                class="text-purple-600 hover:text-purple-900 p-2 rounded-full hover:bg-purple-100 transition-colors"
+                                                title="Check-in Customer">
+                                            <i class="fas fa-sign-in-alt"></i>
+                                        </button>
+                                    </form>
+                                @elseif($reservation->status == 'seated')
+                                    <!-- Selesai Button -->
+                                    <form action="{{ route('admin.reservations.updateStatus', $reservation) }}" method="POST" class="inline">
+                                        @csrf
+                                        @method('PUT')
+                                        <input type="hidden" name="status" value="completed">
+                                        <button type="submit" 
+                                                class="text-gray-600 hover:text-gray-900 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                                                title="Selesaikan Reservasi">
+                                            <i class="fas fa-flag-checkered"></i>
+                                        </button>
+                                    </form>
+                                @endif
 
-                            @if(!in_array($reservation->status, ['completed', 'cancelled', 'no_show']))
-                                <a href="{{ route('admin.reservations.edit', $reservation) }}" 
-                                   class="text-indigo-600 hover:text-indigo-900">Edit</a>
-                            @endif
+                                @if(!in_array($reservation->status, ['completed', 'cancelled', 'no_show']))
+                                    <!-- Edit Button -->
+                                    <a href="{{ route('admin.reservations.edit', $reservation) }}" 
+                                       class="text-indigo-600 hover:text-indigo-900 p-2 rounded-full hover:bg-indigo-100 transition-colors"
+                                       title="Edit Reservasi">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                     @empty

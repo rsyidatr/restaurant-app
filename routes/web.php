@@ -185,9 +185,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::resource('reservations', AdminReservationController::class);
     Route::put('reservations/{reservation}/status', [AdminReservationController::class, 'updateStatus'])->name('reservations.updateStatus');
     Route::put('reservations/{reservation}/assign-table', [AdminReservationController::class, 'assignTable'])->name('reservations.assignTable');
-    Route::post('reservations/{reservation}/confirm', [AdminReservationController::class, 'confirm'])->name('reservations.confirm');
-    Route::post('reservations/{reservation}/cancel', [AdminReservationController::class, 'cancel'])->name('reservations.cancel');
-    Route::post('reservations/{reservation}/check-in', [AdminReservationController::class, 'checkIn'])->name('reservations.checkIn');
     
     // Table Management
     Route::resource('tables', TableController::class);

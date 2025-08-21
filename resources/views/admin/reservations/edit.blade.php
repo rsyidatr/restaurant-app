@@ -74,7 +74,7 @@
                         <input type="date" 
                                id="reservation_date" 
                                name="reservation_date" 
-                               value="{{ old('reservation_date', $reservation->reservation_date->format('Y-m-d')) }}"
+                               value="{{ old('reservation_date', $reservation->reservation_time ? $reservation->reservation_time->format('Y-m-d') : '') }}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                required>
                         @error('reservation_date')
@@ -84,15 +84,34 @@
 
                     <div>
                         <label for="reservation_time" class="block text-sm font-medium text-gray-700 mb-2">Waktu Reservasi *</label>
-                        <input type="time" 
-                               id="reservation_time" 
-                               name="reservation_time" 
-                               value="{{ old('reservation_time', $reservation->reservation_time->format('H:i')) }}"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                               required>
+                        <select id="reservation_time" 
+                                name="reservation_time" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                required>
+                            <option value="">Pilih waktu reservasi</option>
+                            @php
+                                $times = [];
+                                // Operating hours: 09:00 - 22:00 (every 30 minutes)
+                                for ($hour = 9; $hour <= 21; $hour++) {
+                                    for ($minute = 0; $minute < 60; $minute += 30) {
+                                        $time = sprintf('%02d:%02d', $hour, $minute);
+                                        $times[] = $time;
+                                    }
+                                }
+                                // Add 22:00 as last slot
+                                $times[] = '22:00';
+                                $currentTime = old('reservation_time', $reservation->reservation_time ? $reservation->reservation_time->format('H:i') : '');
+                            @endphp
+                            @foreach($times as $time)
+                                <option value="{{ $time }}" {{ $currentTime == $time ? 'selected' : '' }}>
+                                    {{ $time }}
+                                </option>
+                            @endforeach
+                        </select>
                         @error('reservation_time')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
+                        <p class="text-xs text-gray-500 mt-1">Jam operasional: 09:00 - 22:00</p>
                     </div>
 
                     <div>
@@ -165,21 +184,71 @@
             </div>
 
             <!-- Submit -->
-            <div class="flex justify-end space-x-4 mt-6">
-                <a href="{{ route('admin.reservations.show', $reservation) }}" 
-                   class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
-                    Batal
-                </a>
-                <button type="submit" 
-                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                    Perbarui Reservasi
-                </button>
+            <div class="flex justify-between items-center mt-6">
+                <!-- Delete Button (Left) -->
+                <div>
+                    @if(!in_array($reservation->status, ['completed', 'cancelled', 'no_show']))
+                        <button type="button" 
+                                onclick="confirmDelete()"
+                                class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200">
+                            <i class="fas fa-trash mr-2"></i>
+                            Hapus Reservasi
+                        </button>
+                        <p class="text-xs text-gray-500 mt-1">*Hanya reservasi yang belum selesai yang dapat dihapus</p>
+                    @else
+                        <div class="text-sm text-gray-500">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Reservasi dengan status {{ $reservation->status }} tidak dapat dihapus
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Action Buttons (Right) -->
+                <div class="flex space-x-4">
+                    <a href="{{ route('admin.reservations.show', $reservation) }}" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
+                        <i class="fas fa-times mr-2"></i>
+                        Batal
+                    </a>
+                    <button type="submit" 
+                            class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
+                        <i class="fas fa-save mr-2"></i>
+                        Perbarui Reservasi
+                    </button>
+                </div>
             </div>
+        </form>
+
+        <!-- Hidden Delete Form -->
+        <form id="deleteForm" action="{{ route('admin.reservations.destroy', $reservation) }}" method="POST" style="display: none;">
+            @csrf
+            @method('DELETE')
         </form>
     </div>
 </div>
 
 <script>
+// Delete confirmation function
+function confirmDelete() {
+    const reservationName = '{{ $reservation->customer_name }}';
+    const reservationDate = '{{ $reservation->reservation_time ? $reservation->reservation_time->format("d/m/Y H:i") : "-" }}';
+    
+    const confirmMessage = `Apakah Anda yakin ingin menghapus reservasi ini?\n\n` +
+                          `Pelanggan: ${reservationName}\n` +
+                          `Tanggal: ${reservationDate}\n\n` +
+                          `⚠️ PERINGATAN: Tindakan ini tidak dapat dibatalkan!\n` +
+                          `Semua data reservasi dan riwayatnya akan dihapus permanen.`;
+    
+    if (confirm(confirmMessage)) {
+        // Show loading state
+        const deleteBtn = event.target;
+        const originalText = deleteBtn.innerHTML;
+        deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Menghapus...';
+        deleteBtn.disabled = true;
+        
+        document.getElementById('deleteForm').submit();
+    }
+}
 // Filter tables based on party size
 document.getElementById('party_size').addEventListener('change', function() {
     const partySize = parseInt(this.value);

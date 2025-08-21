@@ -14,6 +14,7 @@ class Order extends Model
         'session_id',
         'user_id',
         'table_id',
+        'reservation_id',
         'customer_name',
         'customer_phone',
         'customer_email',
@@ -62,6 +63,11 @@ class Order extends Model
     public function table()
     {
         return $this->belongsTo(Table::class);
+    }
+
+    public function reservation()
+    {
+        return $this->belongsTo(Reservation::class);
     }
 
     public function orderItems()

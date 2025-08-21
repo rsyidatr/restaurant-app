@@ -78,15 +78,33 @@
 
                     <div>
                         <label for="reservation_time" class="block text-sm font-medium text-gray-700 mb-2">Waktu Reservasi *</label>
-                        <input type="time" 
-                               id="reservation_time" 
-                               name="reservation_time" 
-                               value="{{ old('reservation_time') }}"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                               required>
+                        <select id="reservation_time" 
+                                name="reservation_time" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                required>
+                            <option value="">Pilih waktu reservasi</option>
+                            @php
+                                $times = [];
+                                // Operating hours: 09:00 - 22:00 (every 30 minutes)
+                                for ($hour = 9; $hour <= 21; $hour++) {
+                                    for ($minute = 0; $minute < 60; $minute += 30) {
+                                        $time = sprintf('%02d:%02d', $hour, $minute);
+                                        $times[] = $time;
+                                    }
+                                }
+                                // Add 22:00 as last slot
+                                $times[] = '22:00';
+                            @endphp
+                            @foreach($times as $time)
+                                <option value="{{ $time }}" {{ old('reservation_time') == $time ? 'selected' : '' }}>
+                                    {{ $time }}
+                                </option>
+                            @endforeach
+                        </select>
                         @error('reservation_time')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
+                        <p class="text-xs text-gray-500 mt-1">Jam operasional: 09:00 - 22:00</p>
                     </div>
 
                     <div>
@@ -191,16 +209,44 @@ document.getElementById('party_size').addEventListener('change', function() {
 document.getElementById('reservation_date').addEventListener('change', function() {
     const selectedDate = new Date(this.value);
     const today = new Date();
-    const timeInput = document.getElementById('reservation_time');
+    const timeSelect = document.getElementById('reservation_time');
     
     if (selectedDate.toDateString() === today.toDateString()) {
-        // If selected date is today, set minimum time to current time + 1 hour
-        const minTime = new Date(today.getTime() + 60 * 60 * 1000);
-        const minTimeString = minTime.toTimeString().slice(0, 5);
-        timeInput.min = minTimeString;
+        // If selected date is today, disable past times
+        const currentTime = new Date();
+        const currentHour = currentTime.getHours();
+        const currentMinute = currentTime.getMinutes();
+        const currentTimeInMinutes = currentHour * 60 + currentMinute;
+        
+        const options = timeSelect.querySelectorAll('option');
+        options.forEach(option => {
+            if (option.value === '') return;
+            
+            const [hour, minute] = option.value.split(':').map(Number);
+            const optionTimeInMinutes = hour * 60 + minute;
+            
+            // Disable if time is in the past (add 1 hour buffer)
+            if (optionTimeInMinutes <= currentTimeInMinutes + 60) {
+                option.disabled = true;
+                option.style.color = '#9CA3AF';
+            } else {
+                option.disabled = false;
+                option.style.color = '';
+            }
+        });
+        
+        // Reset selection if current selection is disabled
+        const selectedOption = timeSelect.options[timeSelect.selectedIndex];
+        if (selectedOption && selectedOption.disabled) {
+            timeSelect.value = '';
+        }
     } else {
-        // If selected date is in the future, remove time restriction
-        timeInput.removeAttribute('min');
+        // If selected date is in the future, enable all times
+        const options = timeSelect.querySelectorAll('option');
+        options.forEach(option => {
+            option.disabled = false;
+            option.style.color = '';
+        });
     }
 });
 
