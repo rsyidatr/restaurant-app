@@ -20,10 +20,22 @@ class LoginController extends Controller
             'password' => 'required',
         ]);
 
-        if (Auth::attempt($credentials)) {
+        if (Auth::attempt($credentials, $request->filled('remember'))) {
+            // Regenerate session untuk security
             $request->session()->regenerate();
-
+            
             $user = Auth::user();
+            
+            // Debug log
+            \Log::info('User logged in', [
+                'email' => $user->email,
+                'role' => $user->role,
+                'user_id' => $user->id
+            ]);
+            
+            // Clear any previous session data
+            $request->session()->forget(['login_attempts', 'failed_login']);
+            
             $redirectRoute = match($user->role) {
                 'admin' => 'admin.dashboard',
                 'pelayan' => 'waiter.dashboard',
@@ -31,8 +43,16 @@ class LoginController extends Controller
                 'pelanggan' => 'customer.home',
                 default => 'login',
             };
-            return redirect()->route($redirectRoute)->with('success', 'Welcome back, ' . $user->name);
+            
+            \Log::info('Redirecting to', ['route' => $redirectRoute]);
+            
+            // Use intended() untuk redirect yang lebih robust
+            return redirect()->intended(route($redirectRoute))->with('success', 'Welcome back, ' . $user->name);
         }
+
+        // Increment login attempts
+        $attempts = $request->session()->get('login_attempts', 0) + 1;
+        $request->session()->put('login_attempts', $attempts);
 
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',

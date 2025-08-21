@@ -1,4 +1,4 @@
-@extends('layouts.kitchen')
+@extends('layouts.kitchen_simple')
 
 @section('title', 'Ketersediaan Menu')
 

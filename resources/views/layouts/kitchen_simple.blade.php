@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Dashboard Pelayan') - Restaurant</title>
+    <title>@yield('title', 'Dashboard Dapur') - Restaurant</title>
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -206,26 +206,22 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="sidebar-header">
-                <h1>Restaurant Waiter</h1>
-                <p>Pelayan Panel</p>
+                <h1>Restaurant Kitchen</h1>
+                <p>Dapur Panel</p>
             </div>
             
             <nav class="sidebar-nav">
-                <a href="{{ route('waiter.dashboard') }}" class="nav-item {{ request()->routeIs('waiter.dashboard') ? 'active' : '' }}">
+                <a href="{{ route('kitchen.dashboard') }}" class="nav-item {{ request()->routeIs('kitchen.dashboard') ? 'active' : '' }}">
                     <i class="fas fa-chart-bar"></i>
                     Dasbor
                 </a>
-                <a href="{{ route('waiter.orders.index') }}" class="nav-item {{ request()->routeIs('waiter.orders.*') ? 'active' : '' }}">
-                    <i class="fas fa-shopping-cart"></i>
-                    Pesanan
+                <a href="{{ route('kitchen.orders.index') }}" class="nav-item {{ request()->routeIs('kitchen.orders.*') ? 'active' : '' }}">
+                    <i class="fas fa-clipboard-list"></i>
+                    Pesanan Masuk
                 </a>
-                <a href="{{ route('waiter.tables.index') }}" class="nav-item {{ request()->routeIs('waiter.tables.*') ? 'active' : '' }}">
-                    <i class="fas fa-chair"></i>
-                    Meja
-                </a>
-                <a href="{{ route('waiter.reservations.index') }}" class="nav-item {{ request()->routeIs('waiter.reservations.*') ? 'active' : '' }}">
-                    <i class="fas fa-calendar-check"></i>
-                    Reservasi
+                <a href="{{ route('kitchen.menu.index') }}" class="nav-item {{ request()->routeIs('kitchen.menu.*') ? 'active' : '' }}">
+                    <i class="fas fa-utensils"></i>
+                    Kelola Menu
                 </a>
             </nav>
             
@@ -235,8 +231,8 @@
                         <i class="fas fa-user"></i>
                     </div>
                     <div class="user-details">
-                        <h4>{{ Auth::user()->name ?? 'Guest' }}</h4>
-                        <p>Pelayan</p>
+                        <h4>{{ Auth::user()->name ?? 'Chef' }}</h4>
+                        <p>Koki</p>
                     </div>
                 </div>
                 <form action="{{ route('logout') }}" method="POST">
@@ -251,7 +247,7 @@
         <!-- Main Content -->
         <div class="main-content">
             <header class="main-header">
-                <h2>@yield('title', 'Dashboard Pelayan')</h2>
+                <h2>@yield('title', 'Dashboard Dapur')</h2>
                 <div class="header-date">
                     <i class="fas fa-calendar"></i>
                     {{ now()->format('l, F j, Y') }}

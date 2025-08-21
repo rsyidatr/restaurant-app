@@ -20,31 +20,44 @@ class AdminUserSeeder extends Seeder
             [
                 'name' => 'Restaurant Admin',
                 'email' => 'admin@restaurant.com',
-                'password' => Hash::make('admin123'),
+                'password' => Hash::make('password'),
                 'role' => 'admin',
                 'email_verified_at' => now(),
             ]
         );
 
-        // Create additional test users
+        // Create pelayan user
         User::updateOrCreate(
             ['email' => 'pelayan@restaurant.com'],
             [
-                'name' => 'Test Pelayan',
+                'name' => 'Pelayan Restaurant',
                 'email' => 'pelayan@restaurant.com',
-                'password' => Hash::make('pelayan123'),
+                'password' => Hash::make('password'),
                 'role' => 'pelayan',
                 'email_verified_at' => now(),
             ]
         );
 
+        // Create koki user
         User::updateOrCreate(
             ['email' => 'koki@restaurant.com'],
             [
-                'name' => 'Test Koki',
+                'name' => 'Koki Restaurant',
                 'email' => 'koki@restaurant.com',
-                'password' => Hash::make('koki123'),
+                'password' => Hash::make('password'),
                 'role' => 'koki',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        // Create pelanggan user
+        User::updateOrCreate(
+            ['email' => 'customer@test.com'],
+            [
+                'name' => 'Test Customer',
+                'email' => 'customer@test.com',
+                'password' => Hash::make('password'),
+                'role' => 'pelanggan',
                 'email_verified_at' => now(),
             ]
         );
