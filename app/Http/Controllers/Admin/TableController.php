@@ -46,7 +46,7 @@ class TableController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'table_number' => 'required|integer|unique:tables',
+            'table_number' => 'required|string|max:10|unique:tables',
             'capacity' => 'required|integer|in:2,4,6,8,10,15,20,30',
             'status' => 'required|in:available,reserved,occupied,cleaning'
         ]);
@@ -64,7 +64,7 @@ class TableController extends Controller
     public function update(Request $request, Table $table)
     {
         $validated = $request->validate([
-            'table_number' => 'required|integer|unique:tables,table_number,' . $table->id,
+            'table_number' => 'required|string|max:10|unique:tables,table_number,' . $table->id,
             'capacity' => 'required|integer|in:2,4,6,8,10,15,20,30',
             'status' => 'required|in:available,reserved,occupied,cleaning'
         ]);
