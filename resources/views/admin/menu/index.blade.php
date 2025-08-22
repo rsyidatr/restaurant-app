@@ -141,23 +141,6 @@
     </div>
 </div>
 
-<!-- Toast Notification -->
-<div id="toast" class="fixed top-4 right-4 transform translate-x-full transition-transform duration-300 z-50">
-    <div class="bg-white border-l-4 rounded-lg shadow-lg p-4 max-w-sm">
-        <div class="flex items-center">
-            <div class="flex-shrink-0">
-                <i id="toastIcon" class="text-xl"></i>
-            </div>
-            <div class="ml-3">
-                <p id="toastMessage" class="text-sm font-medium"></p>
-            </div>
-            <button onclick="hideToast()" class="ml-4 text-gray-400 hover:text-gray-600">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    </div>
-</div>
-
 @push('scripts')
 <script>
 // Toggle availability function
@@ -183,44 +166,16 @@ function toggleAvailability(itemId) {
                 buttonElement.className = 'inline-flex px-2 py-1 text-xs font-medium rounded-full transition-colors bg-red-100 text-red-800 hover:bg-red-200';
             }
             
-            showToast('Status menu berhasil diperbarui', 'success');
+            // Use new notification system
+            notificationManager.success('Status menu berhasil diperbarui');
         } else {
-            showToast('Gagal memperbarui status menu', 'error');
+            notificationManager.error('Gagal memperbarui status menu');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showToast('Terjadi kesalahan saat memperbarui status', 'error');
+        notificationManager.error('Terjadi kesalahan saat memperbarui status');
     });
-}
-
-// Toast notification functions
-function showToast(message, type = 'success') {
-    const toast = document.getElementById('toast');
-    const icon = document.getElementById('toastIcon');
-    const messageEl = document.getElementById('toastMessage');
-    const borderClass = type === 'success' ? 'border-green-400' : 'border-red-400';
-    const iconClass = type === 'success' ? 'fas fa-check-circle text-green-500' : 'fas fa-exclamation-circle text-red-500';
-    
-    // Set content
-    messageEl.textContent = message;
-    icon.className = iconClass;
-    toast.firstElementChild.className = `bg-white ${borderClass} rounded-lg shadow-lg p-4 max-w-sm`;
-    
-    // Show toast
-    toast.classList.remove('translate-x-full');
-    toast.classList.add('translate-x-0');
-    
-    // Auto hide after 3 seconds
-    setTimeout(() => {
-        hideToast();
-    }, 3000);
-}
-
-function hideToast() {
-    const toast = document.getElementById('toast');
-    toast.classList.remove('translate-x-0');
-    toast.classList.add('translate-x-full');
 }
 
 // Filter function
@@ -241,19 +196,6 @@ function filterByCategory(categoryId) {
     // Navigate to the new URL
     window.location.href = url.toString();
 }
-
-// Show success message if exists
-@if(session('success'))
-    document.addEventListener('DOMContentLoaded', function() {
-        showToast('{{ session('success') }}', 'success');
-    });
-@endif
-
-@if(session('error'))
-    document.addEventListener('DOMContentLoaded', function() {
-        showToast('{{ session('error') }}', 'error');
-    });
-@endif
 </script>
 @endpush
 @endsection

@@ -202,10 +202,11 @@
                 
                 <div class="space-y-3">
                     @if($user->id !== auth()->id())
-                        <form action="{{ route('admin.users.toggleStatus', $user) }}" method="POST">
+                        <form action="{{ route('admin.users.toggleStatus', $user) }}" method="POST" id="toggle-form-detail">
                             @csrf
                             @method('PUT')
-                            <button type="submit" 
+                            <button type="button" 
+                                    onclick="confirmToggleStatus('{{ $user->name }}', {{ $user->is_active ? 'true' : 'false' }}, document.getElementById('toggle-form-detail'))"
                                     class="w-full {{ $user->is_active ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700' }} text-white px-4 py-2 rounded-md inline-flex items-center justify-center">
                                 <i class="fas {{ $user->is_active ? 'fa-user-slash' : 'fa-user-check' }} mr-2"></i>
                                 {{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }} Akun
@@ -306,11 +307,11 @@
             <div class="bg-white rounded-lg shadow p-6 border border-red-200">
                 <h3 class="text-lg font-semibold text-red-800 mb-4">Danger Zone</h3>
                 
-                <form action="{{ route('admin.users.destroy', $user) }}" method="POST">
+                <form action="{{ route('admin.users.destroy', $user) }}" method="POST" id="delete-form-detail">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" 
-                            onclick="return confirm('Apakah Anda yakin ingin menghapus pengguna ini? Tindakan ini tidak dapat dibatalkan.')"
+                    <button type="button" 
+                            onclick="confirmDelete('{{ $user->name }}', document.getElementById('delete-form-detail'))"
                             class="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md inline-flex items-center justify-center">
                         <i class="fas fa-trash mr-2"></i>
                         Hapus Pengguna
@@ -321,4 +322,98 @@
         </div>
     </div>
 </div>
+
+<script>
+// Enhanced delete confirmation
+function confirmDelete(userName, form) {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
+    modal.innerHTML = `
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mt-4">Hapus Pengguna</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p class="text-sm text-gray-500">
+                        Apakah Anda yakin ingin menghapus pengguna <strong>${userName}</strong>? 
+                        Tindakan ini tidak dapat dibatalkan.
+                    </p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button onclick="closeModal()" 
+                            class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-gray-600 mr-2">
+                        Batal
+                    </button>
+                    <button onclick="submitDelete()" 
+                            class="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-red-700">
+                        <i class="fas fa-trash mr-1"></i> Hapus
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    window.closeModal = function() {
+        document.body.removeChild(modal);
+    };
+    
+    window.submitDelete = function() {
+        form.submit();
+        document.body.removeChild(modal);
+    };
+    
+    return false;
+}
+
+// Enhanced toggle status confirmation
+function confirmToggleStatus(userName, currentStatus, form) {
+    const action = currentStatus ? 'menonaktifkan' : 'mengaktifkan';
+    const actionColor = currentStatus ? 'red' : 'green';
+    
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
+    modal.innerHTML = `
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-${actionColor}-100">
+                    <i class="fas fa-user-${currentStatus ? 'slash' : 'check'} text-${actionColor}-600 text-xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mt-4">Konfirmasi Status</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p class="text-sm text-gray-500">
+                        Apakah Anda yakin ingin ${action} pengguna <strong>${userName}</strong>?
+                    </p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button onclick="closeStatusModal()" 
+                            class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-gray-600 mr-2">
+                        Batal
+                    </button>
+                    <button onclick="submitToggleStatus()" 
+                            class="px-4 py-2 bg-${actionColor}-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-${actionColor}-700">
+                        <i class="fas fa-user-${currentStatus ? 'slash' : 'check'} mr-1"></i> ${action.charAt(0).toUpperCase() + action.slice(1)}
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    window.closeStatusModal = function() {
+        document.body.removeChild(modal);
+    };
+    
+    window.submitToggleStatus = function() {
+        form.submit();
+        document.body.removeChild(modal);
+    };
+    
+    return false;
+}
+</script>
 @endsection

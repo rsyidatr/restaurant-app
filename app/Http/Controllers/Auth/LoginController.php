@@ -26,11 +26,20 @@ class LoginController extends Controller
             
             $user = Auth::user();
             
+            // Check if user is active
+            if (!$user->is_active) {
+                Auth::logout();
+                return back()->withErrors([
+                    'email' => 'Akun Anda telah dinonaktifkan. Silakan hubungi administrator.',
+                ])->onlyInput('email');
+            }
+            
             // Debug log
             \Log::info('User logged in', [
                 'email' => $user->email,
                 'role' => $user->role,
-                'user_id' => $user->id
+                'user_id' => $user->id,
+                'is_active' => $user->is_active
             ]);
             
             // Clear any previous session data
@@ -40,7 +49,7 @@ class LoginController extends Controller
                 'admin' => 'admin.dashboard',
                 'pelayan' => 'waiter.dashboard',
                 'koki' => 'kitchen.dashboard',
-                'pelanggan' => 'customer.home',
+                'customer' => 'customer.home',
                 default => 'login',
             };
             

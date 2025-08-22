@@ -102,7 +102,7 @@
                             <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Admin</option>
                             <option value="pelayan" {{ old('role', $user->role) == 'pelayan' ? 'selected' : '' }}>Pelayan</option>
                             <option value="koki" {{ old('role', $user->role) == 'koki' ? 'selected' : '' }}>Koki</option>
-                            <option value="pelanggan" {{ old('role', $user->role) == 'pelanggan' ? 'selected' : '' }}>Pelanggan</option>
+                            <option value="customer" {{ old('role', $user->role) == 'customer' ? 'selected' : '' }}>Pelanggan</option>
                         </select>
                         @error('role')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>

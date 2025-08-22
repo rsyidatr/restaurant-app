@@ -30,7 +30,7 @@ use App\Http\Controllers\Admin\ReportController;
 */
 
 Route::get('/', function () {
-    return view('customer.home');
+    return view('customer.home.index');
 })->name('home');
 
 // Multi-Session Routes
@@ -44,7 +44,7 @@ Route::prefix('multi-session')->name('multi-session.')->group(function () {
 // Public Customer Routes (dapat diakses tanpa login)
 Route::get('/menu', [MenuController::class, 'index'])->name('customer.menu');
 Route::get('/cart', function() {
-    return view('customer.cart');
+    return view('customer.cart.index');
 })->name('customer.cart');
 Route::get('/reservation', [ReservationController::class, 'index'])->name('customer.reservation');
 Route::post('/reservation/preview', [ReservationController::class, 'preview'])->name('customer.reservation.preview');
@@ -99,7 +99,7 @@ Route::get('/debug-login/{email}', function ($email) {
         'admin' => 'admin.dashboard',
         'pelayan' => 'waiter.dashboard', 
         'koki' => 'kitchen.dashboard',
-        'pelanggan' => 'customer.home',
+        'customer' => 'customer.home',
         default => 'login',
     };
     
@@ -120,7 +120,7 @@ Route::post('/simple-login', function (Request $request) {
             'admin' => 'admin.dashboard',
             'pelayan' => 'waiter.dashboard',
             'koki' => 'kitchen.dashboard', 
-            'pelanggan' => 'customer.home',
+            'customer' => 'customer.home',
             default => 'login',
         };
         return redirect()->route($redirectRoute);
@@ -212,6 +212,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::get('/tables', [ReportController::class, 'tables'])->name('tables');
         Route::get('/export', [ReportController::class, 'export'])->name('export');
     });
+    
+    // Notification Demo (Development only)
+    Route::get('/notification-demo', function () {
+        return view('admin.notification-demo');
+    })->name('notification-demo');
 });
 
 // Waiter Routes
@@ -277,9 +282,9 @@ Route::middleware(['auth', 'role:koki'])->prefix('kitchen')->name('kitchen.')->g
 });
 
 // Customer Routes (perlu login)
-Route::middleware(['auth', 'role:pelanggan'])->group(function () {
+Route::middleware(['auth', 'role:customer'])->group(function () {
     Route::get('/customer', function () {
-        return view('customer.home');
+        return view('customer.home.index');
     })->name('customer.home');
 });
 

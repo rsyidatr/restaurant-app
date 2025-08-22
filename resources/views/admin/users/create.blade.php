@@ -10,7 +10,7 @@
         </a>
     </div>
 
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="bg-white rounded-lg shadow p-6">    <div class="bg-white rounded-lg shadow p-6">
         <form action="{{ route('admin.users.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             
@@ -95,7 +95,7 @@
                             <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
                             <option value="pelayan" {{ old('role') == 'pelayan' ? 'selected' : '' }}>Pelayan</option>
                             <option value="koki" {{ old('role') == 'koki' ? 'selected' : '' }}>Koki</option>
-                            <option value="pelanggan" {{ old('role') == 'pelanggan' ? 'selected' : '' }}>Pelanggan</option>
+                            <option value="customer" {{ old('role') == 'customer' ? 'selected' : '' }}>Pelanggan</option>
                         </select>
                         @error('role')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>

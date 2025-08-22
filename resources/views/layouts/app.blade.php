@@ -136,5 +136,8 @@
             }
         };
     </script>
+    
+    <!-- Universal Notification System -->
+    @include('components.notification')
 </body>
 </html>

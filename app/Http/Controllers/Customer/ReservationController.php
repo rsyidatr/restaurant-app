@@ -15,7 +15,7 @@ class ReservationController extends Controller
 {
     public function index()
     {
-        return view('customer.reservation');
+        return view('customer.reservations.create');
     }
 
     public function preview(Request $request)
@@ -43,7 +43,7 @@ class ReservationController extends Controller
             $reservationData['reservation_date'] = $validated['date'];
             $reservationData['reservation_time'] = $validated['time'];
 
-            return view('customer.reservation-preview', compact('reservationData', 'availableTables'));
+            return view('customer.reservations.preview', compact('reservationData', 'availableTables'));
         } catch (ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
         } catch (Exception $e) {

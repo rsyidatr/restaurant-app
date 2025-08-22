@@ -43,6 +43,6 @@ class MenuController extends Controller
             }
         }
 
-        return view('customer.menu', ['menuCategories' => $formattedCategories]);
+        return view('customer.menu.index', ['menuCategories' => $formattedCategories]);
     }
 }

@@ -26,7 +26,7 @@ class OrderHistoryController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
         
-        return view('customer.order-history', compact('orders'));
+        return view('customer.orders.history', compact('orders'));
     }
     
     public function show($orderId)
@@ -46,6 +46,6 @@ class OrderHistoryController extends Controller
             })
             ->firstOrFail();
         
-        return view('customer.order-detail', compact('order'));
+        return view('customer.orders.detail', compact('order'));
     }
 }
