@@ -6,11 +6,13 @@
         <h1 class="text-3xl font-bold text-gray-800">Detail Pengguna</h1>
         <div class="space-x-2">
             <a href="{{ route('admin.users.edit', $user) }}" 
-               class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+               class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg inline-flex items-center">
+                <i class="fas fa-edit mr-2"></i>
                 Edit
             </a>
             <a href="{{ route('admin.users.index') }}" 
-               class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg">
+               class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg inline-flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i>
                 Kembali
             </a>
         </div>
@@ -204,7 +206,8 @@
                             @csrf
                             @method('PUT')
                             <button type="submit" 
-                                    class="w-full {{ $user->is_active ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700' }} text-white px-4 py-2 rounded-md">
+                                    class="w-full {{ $user->is_active ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700' }} text-white px-4 py-2 rounded-md inline-flex items-center justify-center">
+                                <i class="fas {{ $user->is_active ? 'fa-user-slash' : 'fa-user-check' }} mr-2"></i>
                                 {{ $user->is_active ? 'Nonaktifkan' : 'Aktifkan' }} Akun
                             </button>
                         </form>
@@ -212,30 +215,35 @@
 
                     @if($user->phone)
                         <a href="tel:{{ $user->phone }}" 
-                           class="w-full inline-block text-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+                           class="w-full inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+                            <i class="fas fa-phone mr-2"></i>
                             Telepon
                         </a>
                         
                         <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $user->phone) }}" 
                            target="_blank"
-                           class="w-full inline-block text-center bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md">
+                           class="w-full inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md">
+                            <i class="fab fa-whatsapp mr-2"></i>
                             WhatsApp
                         </a>
                     @endif
                     
                     <a href="mailto:{{ $user->email }}" 
-                       class="w-full inline-block text-center bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md">
+                       class="w-full inline-flex items-center justify-center bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md">
+                        <i class="fas fa-envelope mr-2"></i>
                         Email
                     </a>
 
                     @if($user->role == 'pelanggan')
                         <a href="{{ route('admin.orders.create', ['customer_id' => $user->id]) }}" 
-                           class="w-full inline-block text-center bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md">
+                           class="w-full inline-flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md">
+                            <i class="fas fa-shopping-cart mr-2"></i>
                             Buat Pesanan
                         </a>
                         
                         <a href="{{ route('admin.reservations.create', ['customer_id' => $user->id]) }}" 
-                           class="w-full inline-block text-center bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md">
+                           class="w-full inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md">
+                            <i class="fas fa-calendar-plus mr-2"></i>
                             Buat Reservasi
                         </a>
                     @endif
@@ -303,7 +311,8 @@
                     @method('DELETE')
                     <button type="submit" 
                             onclick="return confirm('Apakah Anda yakin ingin menghapus pengguna ini? Tindakan ini tidak dapat dibatalkan.')"
-                            class="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md">
+                            class="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md inline-flex items-center justify-center">
+                        <i class="fas fa-trash mr-2"></i>
                         Hapus Pengguna
                     </button>
                 </form>

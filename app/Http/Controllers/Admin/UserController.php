@@ -34,6 +34,8 @@ class UserController extends Controller
             'total_users' => User::count(),
             'admins' => User::where('role', 'admin')->count(),
             'customers' => User::where('role', 'customer')->count(),
+            'pelayan' => User::where('role', 'pelayan')->count(),
+            'koki' => User::where('role', 'koki')->count(),
             'staff' => User::whereIn('role', ['pelayan', 'koki'])->count(),
         ];
         
