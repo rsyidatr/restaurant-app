@@ -26,12 +26,24 @@ class MenuController extends Controller
         foreach($menuCategories as $category) {
             $items = [];
             foreach($category->menuItems as $item) {
+                // Handle image path
+                $imagePath = 'default-menu.jpg';
+                if ($item->image_url) {
+                    if (str_contains($item->image_url, 'menu/')) {
+                        // New storage path
+                        $imagePath = $item->image_url;
+                    } else {
+                        // Old public/images/menu path
+                        $imagePath = 'images/menu/' . $item->image_url;
+                    }
+                }
+                
                 $items[] = [
                     'id' => $item->id,
                     'name' => $item->name,
                     'description' => $item->description,
                     'price' => $item->price,
-                    'image' => $item->image_url ? $item->image_url : 'default-menu.jpg'
+                    'image' => $imagePath
                 ];
             }
             
