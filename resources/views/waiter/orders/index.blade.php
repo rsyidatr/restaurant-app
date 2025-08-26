@@ -7,11 +7,11 @@
         <div class="flex space-x-2">
             <select id="statusFilter" class="px-3 py-2 border border-gray-300 rounded-md">
                 <option value="">Semua Status</option>
-                <option value="pending">Pending</option>
-                <option value="preparing">Diproses</option>
-                <option value="ready">Siap</option>
-                <option value="served">Disajikan</option>
-                <option value="cancelled">Dibatalkan</option>
+                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                <option value="preparing" {{ request('status') == 'preparing' ? 'selected' : '' }}>Diproses</option>
+                <option value="ready" {{ request('status') == 'ready' ? 'selected' : '' }}>Siap</option>
+                <option value="served" {{ request('status') == 'served' ? 'selected' : '' }}>Disajikan</option>
+                <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Dibatalkan</option>
             </select>
         </div>
     </div>
@@ -23,20 +23,26 @@
                 <input type="text" 
                        id="searchOrder" 
                        placeholder="Cari nomor pesanan..."
+                       value="{{ request('search') }}"
                        class="w-full px-3 py-2 border border-gray-300 rounded-md">
             </div>
             <div>
                 <input type="date" 
                        id="dateFilter"
+                       value="{{ request('date') }}"
                        class="w-full px-3 py-2 border border-gray-300 rounded-md">
             </div>
             <div>
                 <select id="tableFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md">
                     <option value="">Semua Meja</option>
-                    @if(isset($tables))
+                    @if(isset($tables) && $tables->count() > 0)
                         @foreach($tables as $table)
-                            <option value="{{ $table->id }}">Meja {{ $table->table_number }}</option>
+                            <option value="{{ $table->id }}" {{ request('table_id') == $table->id ? 'selected' : '' }}>
+                                Meja {{ $table->table_number }}
+                            </option>
                         @endforeach
+                    @else
+                        <option disabled>Tidak ada meja tersedia</option>
                     @endif
                 </select>
             </div>
@@ -176,7 +182,7 @@
                             </div>
                             <div class="text-sm text-gray-500">
                                 @foreach($order->orderItems->take(2) as $item)
-                                    {{ $item->menuItem->name }}@if(!$loop->last),@endif
+                                    {{ $item->menuItem ? $item->menuItem->name : $item->menu_name }}@if(!$loop->last),@endif
                                 @endforeach
                                 @if($order->orderItems->count() > 2)
                                     +{{ $order->orderItems->count() - 2 }} lainnya
@@ -283,9 +289,39 @@
             clearInterval(autoRefreshInterval);
         }
     }
-    
+
+    // Filter functions
+    function refreshOrders() {
+        const status = document.getElementById('statusFilter').value;
+        const search = document.getElementById('searchOrder').value;
+        const date = document.getElementById('dateFilter').value;
+        const tableId = document.getElementById('tableFilter').value;
+        
+        const params = new URLSearchParams();
+        if (status) params.append('status', status);
+        if (search) params.append('search', search);
+        if (date) params.append('date', date);
+        if (tableId) params.append('table_id', tableId);
+        
+        const url = `{{ route('waiter.orders.index') }}?${params.toString()}`;
+        window.location.href = url;
+    }
+
+    // Add event listeners for real-time filtering
     document.addEventListener('DOMContentLoaded', function() {
         startAutoRefresh();
+        
+        // Add event listeners to filters
+        document.getElementById('statusFilter').addEventListener('change', refreshOrders);
+        document.getElementById('dateFilter').addEventListener('change', refreshOrders);
+        document.getElementById('tableFilter').addEventListener('change', refreshOrders);
+        
+        // Add search functionality with debounce
+        let searchTimeout;
+        document.getElementById('searchOrder').addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(refreshOrders, 500);
+        });
     });
     
     document.addEventListener('visibilitychange', function() {

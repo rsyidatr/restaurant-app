@@ -27,16 +27,46 @@ class ReservationController extends Controller
             $query->whereDate('reservation_time', '>=', Carbon::today());
         }
         
-        $reservations = $query->orderBy('reservation_time', 'asc')->paginate(15);
+        // Filter berdasarkan pencarian customer
+        if ($request->filled('search')) {
+            $query->where('customer_name', 'like', '%' . $request->search . '%');
+        }
         
-        return view('waiter.reservations.index', compact('reservations'));
+        // Filter berdasarkan waktu
+        if ($request->filled('time')) {
+            switch ($request->time) {
+                case 'morning':
+                    $query->whereTime('reservation_time', '>=', '06:00:00')
+                          ->whereTime('reservation_time', '<', '12:00:00');
+                    break;
+                case 'afternoon':
+                    $query->whereTime('reservation_time', '>=', '12:00:00')
+                          ->whereTime('reservation_time', '<', '18:00:00');
+                    break;
+                case 'evening':
+                    $query->whereTime('reservation_time', '>=', '18:00:00')
+                          ->whereTime('reservation_time', '<=', '23:59:59');
+                    break;
+            }
+        }
+        
+        $reservations = $query->orderBy('reservation_time', 'asc')
+                             ->paginate(15);
+        
+        // Get available tables for assign table modal
+        $availableTables = Table::where('status', 'available')->orderBy('table_number')->get();
+        
+        return view('waiter.reservations.index', compact('reservations', 'availableTables'));
     }
     
     public function show(Reservation $reservation)
     {
-        $reservation->load(['user', 'table']);
+        $reservation->load(['user', 'table', 'orders.orderItems']);
         
-        return view('waiter.reservations.show', compact('reservation'));
+        // Get available tables for assign table modal
+        $availableTables = Table::where('status', 'available')->orderBy('table_number')->get();
+        
+        return view('waiter.reservations.show', compact('reservation', 'availableTables'));
     }
     
     public function updateStatus(Request $request, Reservation $reservation)

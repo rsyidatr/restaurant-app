@@ -174,7 +174,15 @@
         }
         
         .dropdown-item {
-            @apply block w-full text-left px-4 py-3 text-charcoal-700 hover:bg-gray-50 hover:text-gold-600 transition-colors duration-200;
+            @apply block w-full text-left px-4 py-3 text-sm font-medium text-charcoal-700 hover:bg-gradient-to-r hover:from-gold-50 hover:to-gold-100 hover:text-gold-700 transition-all duration-300 rounded-lg mx-2 my-1;
+        }
+        
+        .dropdown-item:first-child {
+            @apply mt-2;
+        }
+        
+        .dropdown-item:last-child {
+            @apply mb-2;
         }
         
         .mobile-nav-link {
@@ -261,17 +269,20 @@
                                  x-transition:leave-start="opacity-1 scale-100"
                                  x-transition:leave-end="opacity-0 scale-95"
                                  @click.away="open = false"
-                                 class="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-50">
+                                 class="absolute right-0 top-full mt-3 w-52 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50 backdrop-blur-sm">
+                                <div class="px-3 py-2 border-b border-gray-100">
+                                    <p class="text-xs font-semibold text-charcoal-500 uppercase tracking-wider">My Account</p>
+                                </div>
                                 <a href="{{ route('customer.order-history') }}" class="dropdown-item">
-                                    <i class="fas fa-receipt mr-3"></i>My Orders
+                                    <i class="fas fa-receipt mr-3 text-gold-500"></i>My Orders
                                 </a>
                                 <a href="{{ route('customer.reservation') }}" class="dropdown-item">
-                                    <i class="fas fa-calendar-alt mr-3"></i>My Reservations
+                                    <i class="fas fa-calendar-alt mr-3 text-gold-500"></i>My Reservations
                                 </a>
-                                <div class="border-t border-gray-100 my-2"></div>
+                                <div class="border-t border-gray-100 my-1"></div>
                                 <form action="{{ route('logout') }}" method="POST">
                                     @csrf
-                                    <button type="submit" class="dropdown-item text-red-600 hover:bg-red-50">
+                                    <button type="submit" class="dropdown-item text-red-600 hover:bg-red-50 hover:from-red-50 hover:to-red-100">
                                         <i class="fas fa-sign-out-alt mr-3"></i>Logout
                                     </button>
                                 </form>
@@ -280,9 +291,6 @@
                     @else
                         <a href="{{ route('login') }}" class="luxury-button text-charcoal-900 font-semibold px-6 py-3 rounded-full">
                             <i class="fas fa-sign-in-alt mr-2"></i>Login
-                        </a>
-                        <a href="{{ route('register') }}" class="bg-charcoal-800 text-white font-semibold px-6 py-3 rounded-full hover:bg-charcoal-900 transition-all duration-300 shadow-lg">
-                            <i class="fas fa-user-plus mr-2"></i>Register
                         </a>
                     @endauth
                     

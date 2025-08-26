@@ -10,12 +10,20 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
+        // Admin dummy
+        User::create([
+            'name' => 'Admin Restaurant',
+            'email' => 'admin@restaurant.com',
+            'password' => Hash::make('password'),
+            'role' => 'admin'
+        ]);
+
         // Pelanggan dummy
         User::create([
             'name' => 'Customer Test',
             'email' => 'customer@test.com',
             'password' => Hash::make('password123'),
-            'role' => 'pelanggan'
+            'role' => 'customer'
         ]);
 
         // Pelayan dummy
@@ -31,6 +39,28 @@ class UserSeeder extends Seeder
             'name' => 'Kitchen Test',
             'email' => 'kitchen@test.com',
             'password' => Hash::make('password123'),
+            'role' => 'koki'
+        ]);
+
+        // Test users dengan password yang sama untuk kemudahan testing
+        User::create([
+            'name' => 'Admin Test',
+            'email' => 'admin@test.com',
+            'password' => Hash::make('password'),
+            'role' => 'admin'
+        ]);
+
+        User::create([
+            'name' => 'Waiter Test',
+            'email' => 'waiter@test.com',
+            'password' => Hash::make('password'),
+            'role' => 'pelayan'
+        ]);
+
+        User::create([
+            'name' => 'Chef Test',
+            'email' => 'chef@test.com',
+            'password' => Hash::make('password'),
             'role' => 'koki'
         ]);
     }

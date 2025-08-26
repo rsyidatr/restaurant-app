@@ -178,6 +178,33 @@
                 </ul>
             </div>
         </div>
+        
+        <!-- Testing Credentials Info -->
+        <div class="mt-8 bg-gray-50 rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">📋 Test Credentials</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                <div class="bg-white rounded p-3 border">
+                    <h4 class="font-semibold text-blue-600 mb-2">Admin</h4>
+                    <p><strong>Email:</strong> admin@test.com</p>
+                    <p><strong>Password:</strong> password</p>
+                </div>
+                <div class="bg-white rounded p-3 border">
+                    <h4 class="font-semibold text-green-600 mb-2">Pelayan</h4>
+                    <p><strong>Email:</strong> waiter@test.com</p>
+                    <p><strong>Password:</strong> password</p>
+                </div>
+                <div class="bg-white rounded p-3 border">
+                    <h4 class="font-semibold text-orange-600 mb-2">Koki</h4>
+                    <p><strong>Email:</strong> chef@test.com</p>
+                    <p><strong>Password:</strong> password</p>
+                </div>
+                <div class="bg-white rounded p-3 border">
+                    <h4 class="font-semibold text-purple-600 mb-2">Customer</h4>
+                    <p><strong>Email:</strong> customer@test.com</p>
+                    <p><strong>Password:</strong> password123</p>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

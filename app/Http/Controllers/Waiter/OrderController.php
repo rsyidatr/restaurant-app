@@ -26,9 +26,26 @@ class OrderController extends Controller
             $query->whereDate('created_at', $request->date);
         }
         
+        // Filter berdasarkan table
+        if ($request->filled('table_id')) {
+            $query->where('table_id', $request->table_id);
+        }
+        
+        // Filter berdasarkan search (order number)
+        if ($request->filled('search')) {
+            $query->where('order_number', 'like', '%' . $request->search . '%');
+        }
+        
         $orders = $query->orderBy('created_at', 'desc')->paginate(15);
         
-        return view('waiter.orders.index', compact('orders'));
+        // Get all tables for the filter dropdown
+        try {
+            $tables = Table::orderBy('table_number')->get();
+        } catch (\Exception $e) {
+            $tables = collect(); // Return empty collection if table model fails
+        }
+        
+        return view('waiter.orders.index', compact('orders', 'tables'));
     }
     
     public function show(Order $order)

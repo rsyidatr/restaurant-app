@@ -130,19 +130,53 @@ class MultiSessionController extends Controller
     }
 
     /**
-     * Get redirect path based on guard
+     * Get redirect path based on guard and user role
      */
     private function getRedirectPath($guard)
     {
+        // For staff guard, check user's actual role
+        if ($guard === 'staff') {
+            $user = Auth::guard($guard)->user();
+            if ($user) {
+                switch ($user->role) {
+                    case 'pelayan':
+                        return route('waiter.dashboard');
+                    case 'koki':
+                        return route('kitchen.dashboard');
+                    case 'admin':
+                        return route('admin.dashboard');
+                    default:
+                        return route('waiter.dashboard'); // Default fallback
+                }
+            }
+            return route('waiter.dashboard'); // Fallback if no user
+        }
+        
+        // For other guards
         switch ($guard) {
             case 'admin':
                 return route('admin.dashboard');
-            case 'staff':
-                return route('staff.dashboard');
             case 'customer':
-                return route('customer.dashboard');
+                return route('customer.home');
+            case 'web':
             default:
-                return route('dashboard');
+                // For web guard, check user role
+                $user = Auth::guard($guard)->user();
+                if ($user) {
+                    switch ($user->role) {
+                        case 'admin':
+                            return route('admin.dashboard');
+                        case 'pelayan':
+                            return route('waiter.dashboard');
+                        case 'koki':
+                            return route('kitchen.dashboard');
+                        case 'customer':
+                            return route('customer.home');
+                        default:
+                            return route('home');
+                    }
+                }
+                return route('home');
         }
     }
 
