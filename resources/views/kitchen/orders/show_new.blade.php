@@ -49,8 +49,8 @@
                 <div class="space-y-4">
                     <!-- Order Created -->
                     <div class="flex items-center space-x-3">
-                        <div class="w-8 h-8 border border-gray-300 rounded-full flex items-center justify-center">
-                            <i class="fas fa-plus text-gray-500 text-sm"></i>
+                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                            <i class="fas fa-plus text-white text-sm"></i>
                         </div>
                         <div>
                             <p class="font-medium text-gray-900">Pesanan Dibuat</p>
@@ -59,14 +59,14 @@
                     </div>
 
                     <!-- Cooking Started -->
-                    @if($order->started_cooking_at)
+                    @if($order->cooking_started_at)
                         <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 border border-gray-300 rounded-full flex items-center justify-center">
-                                <i class="fas fa-fire text-gray-500 text-sm"></i>
+                            <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-fire text-white text-sm"></i>
                             </div>
                             <div>
                                 <p class="font-medium text-gray-900">Mulai Dimasak</p>
-                                <p class="text-sm text-gray-600">{{ \Carbon\Carbon::parse($order->started_cooking_at)->format('H:i') }}</p>
+                                <p class="text-sm text-gray-600">{{ \Carbon\Carbon::parse($order->cooking_started_at)->format('H:i') }}</p>
                             </div>
                         </div>
                     @endif
@@ -74,8 +74,8 @@
                     <!-- Ready -->
                     @if($order->ready_at)
                         <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 border border-gray-300 rounded-full flex items-center justify-center">
-                                <i class="fas fa-check text-gray-500 text-sm"></i>
+                            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-check text-white text-sm"></i>
                             </div>
                             <div>
                                 <p class="font-medium text-gray-900">Siap Disajikan</p>
@@ -87,8 +87,8 @@
                     <!-- Served -->
                     @if($order->served_at)
                         <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 border border-gray-300 rounded-full flex items-center justify-center">
-                                <i class="fas fa-utensils text-gray-500 text-sm"></i>
+                            <div class="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-utensils text-white text-sm"></i>
                             </div>
                             <div>
                                 <p class="font-medium text-gray-900">Disajikan</p>
@@ -99,7 +99,7 @@
                 </div>
 
                 <!-- Cooking Timer -->
-                @if($order->status === 'preparing' && $order->started_cooking_at)
+                @if($order->status === 'preparing' && $order->cooking_started_at)
                     <div class="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-2">
@@ -107,7 +107,7 @@
                                 <span class="font-medium text-orange-800">Waktu Memasak</span>
                             </div>
                             <span class="text-lg font-bold text-orange-800" id="cooking-timer">
-                                {{ now()->diffInMinutes($order->started_cooking_at) }} menit
+                                {{ now()->diffInMinutes($order->cooking_started_at) }} menit
                             </span>
                         </div>
                     </div>
@@ -118,34 +118,31 @@
         <!-- Order Items -->
         <div class="bg-white rounded-xl shadow-lg p-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-6">Item Pesanan</h3>
-            <div class="space-y-3">
+            <div class="space-y-4">
                 @foreach($order->orderItems as $item)
-                    <div class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
-                        <!-- Image/Icon -->
-                        <div class="flex-shrink-0 w-12 h-12 border border-gray-300 rounded-lg flex items-center justify-center mr-3">
-                            @if($item->menuItem->image)
-                                <img src="{{ asset('storage/' . $item->menuItem->image) }}" 
-                                     alt="{{ $item->menuItem->name }}"
-                                     class="w-full h-full object-cover rounded-lg">
-                            @else
-                                <i class="fas fa-utensils text-gray-400 text-sm"></i>
-                            @endif
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-16 h-16 bg-orange-100 rounded-xl flex items-center justify-center">
+                                @if($item->menuItem->image)
+                                    <img src="{{ asset('storage/' . $item->menuItem->image) }}" 
+                                         alt="{{ $item->menuItem->name }}"
+                                         class="w-full h-full object-cover rounded-xl">
+                                @else
+                                    <i class="fas fa-utensils text-orange-600 text-xl"></i>
+                                @endif
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">{{ $item->menuItem->name }}</h4>
+                                <p class="text-sm text-gray-600">{{ $item->menuItem->category->name ?? 'Tanpa Kategori' }}</p>
+                                @if($item->notes)
+                                    <p class="text-sm text-orange-600 mt-1">
+                                        <i class="fas fa-sticky-note mr-1"></i>{{ $item->notes }}
+                                    </p>
+                                @endif
+                            </div>
                         </div>
-                        
-                        <!-- Item Info -->
-                        <div class="flex-1 min-w-0">
-                            <h4 class="text-sm font-semibold text-gray-900 truncate">{{ $item->menuItem->name }}</h4>
-                            <p class="text-xs text-gray-500">{{ $item->menuItem->category->name ?? 'Tanpa Kategori' }}</p>
-                            @if($item->notes)
-                                <p class="text-xs text-orange-600 mt-1 flex items-center">
-                                    <i class="fas fa-sticky-note mr-1"></i>{{ $item->notes }}
-                                </p>
-                            @endif
-                        </div>
-                        
-                        <!-- Quantity -->
-                        <div class="flex-shrink-0 ml-3">
-                            <div class="w-8 h-8 border border-gray-300 rounded-full flex items-center justify-center text-xs font-bold text-gray-700">
+                        <div class="text-right">
+                            <div class="inline-flex items-center justify-center w-10 h-10 bg-orange-100 text-orange-800 rounded-full font-bold">
                                 {{ $item->quantity }}
                             </div>
                         </div>
@@ -176,25 +173,25 @@
             <div class="space-y-3">
                 @if($order->status === 'pending')
                     <button onclick="startCooking()" 
-                            class="w-full border border-blue-300 text-blue-700 py-3 px-4 rounded-xl font-medium transition-all hover:bg-blue-50 flex items-center justify-center space-x-2">
+                            class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 px-4 rounded-xl font-medium transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2">
                         <i class="fas fa-fire"></i>
                         <span>Mulai Memasak</span>
                     </button>
                 @elseif($order->status === 'preparing')
                     <button onclick="markReady()" 
-                            class="w-full border border-green-300 text-green-700 py-3 px-4 rounded-xl font-medium transition-all hover:bg-green-50 flex items-center justify-center space-x-2">
+                            class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 px-4 rounded-xl font-medium transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2">
                         <i class="fas fa-check"></i>
                         <span>Tandai Siap</span>
                     </button>
                 @elseif($order->status === 'ready')
-                    <div class="w-full border border-green-300 bg-green-50 text-green-800 py-3 px-4 rounded-xl font-medium text-center flex items-center justify-center space-x-2">
+                    <div class="w-full bg-green-100 text-green-800 py-3 px-4 rounded-xl font-medium text-center flex items-center justify-center space-x-2">
                         <i class="fas fa-check-circle"></i>
                         <span>Siap Disajikan</span>
                     </div>
                 @endif
 
                 <a href="{{ route('kitchen.orders.index') }}" 
-                   class="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-xl font-medium transition-colors hover:bg-gray-50 flex items-center justify-center space-x-2">
+                   class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 py-3 px-4 rounded-xl font-medium transition-colors flex items-center justify-center space-x-2">
                     <i class="fas fa-arrow-left"></i>
                     <span>Kembali ke Daftar</span>
                 </a>
@@ -386,9 +383,9 @@ function proceedMarkReady(confirmId) {
 }
 
 // Update cooking timer if preparing
-@if($order->status === 'preparing' && $order->started_cooking_at)
+@if($order->status === 'preparing' && $order->cooking_started_at)
 function updateCookingTimer() {
-    const startTime = new Date('{{ $order->started_cooking_at }}');
+    const startTime = new Date('{{ $order->cooking_started_at }}');
     const now = new Date();
     const diffInMinutes = Math.floor((now - startTime) / (1000 * 60));
     

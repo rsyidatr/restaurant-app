@@ -18,21 +18,41 @@ class MenuAvailabilityController extends Controller
             $query->where('category_id', $request->category);
         }
         
-        // Filter berdasarkan status ketersediaan
+        // Filter berdasarkan availability
         if ($request->filled('availability')) {
-            $availability = $request->availability === 'available' ? true : false;
-            $query->where('is_available', $availability);
+            $isAvailable = $request->availability === 'available';
+            $query->where('is_available', $isAvailable);
         }
         
+        // Tampilkan semua menu items
         $menuItems = $query->orderBy('name')->paginate(15);
         $categories = MenuCategory::orderBy('name')->get();
         
-        return view('kitchen.menu.index', compact('menuItems', 'categories'));
+        // Statistik untuk dashboard
+        $totalCount = MenuItem::count();
+        $availableCount = MenuItem::where('is_available', true)->count();
+        $unavailableCount = MenuItem::where('is_available', false)->count();
+        $categoriesCount = MenuCategory::count();
+        
+        return view('kitchen.menu.index', compact(
+            'menuItems', 
+            'categories', 
+            'totalCount', 
+            'availableCount', 
+            'unavailableCount', 
+            'categoriesCount'
+        ));
     }
     
-    public function toggleAvailability(MenuItem $menuItem)
+    public function toggleAvailability(Request $request, MenuItem $menuItem)
     {
-        $menuItem->is_available = !$menuItem->is_available;
+        // Gunakan nilai is_available dari request jika ada, jika tidak lakukan toggle biasa
+        if ($request->has('is_available')) {
+            $menuItem->is_available = $request->boolean('is_available');
+        } else {
+            $menuItem->is_available = !$menuItem->is_available;
+        }
+        
         $menuItem->save();
         
         $status = $menuItem->is_available ? 'tersedia' : 'tidak tersedia';

@@ -80,6 +80,11 @@ class Order extends Model
         return $this->belongsTo(User::class, 'waiter_id');
     }
 
+    public function payment()
+    {
+        return $this->hasOne(Payment::class);
+    }
+
     // Generate order number
     public static function generateOrderNumber()
     {

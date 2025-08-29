@@ -13,13 +13,13 @@
             </div>
             <div class="flex items-center space-x-3">
                 <button onclick="refreshOrders()" 
-                        class="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-all flex items-center space-x-2"
+                        class="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-lg hover:from-orange-600 hover:to-red-600 transition-all flex items-center space-x-2 shadow-lg"
                         title="Refresh Data">
-                    <i class="fas fa-sync-alt text-gray-500"></i>
+                    <i class="fas fa-sync-alt"></i>
                     <span class="hidden md:inline">Refresh</span>
                 </button>
-                <div class="border border-gray-300 p-3 rounded-xl">
-                    <i class="fas fa-utensils text-gray-500 text-xl"></i>
+                <div class="bg-gradient-to-br from-orange-400 to-red-500 p-3 rounded-xl shadow-lg">
+                    <i class="fas fa-utensils text-white text-xl"></i>
                 </div>
             </div>
         </div>
@@ -29,14 +29,14 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
             <div class="flex items-center">
-                <div class="p-3 border border-gray-300 rounded-xl">
-                    <i class="fas fa-clock text-gray-500"></i>
+                <div class="p-3 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl shadow-lg">
+                    <i class="fas fa-clock text-white"></i>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Pesanan Baru</p>
+                    <p class="text-sm font-medium text-gray-600">Menunggu</p>
                     <p class="text-2xl font-semibold text-gray-900">{{ $stats['pending'] ?? 0 }}</p>
                     @if(($stats['pending'] ?? 0) > 0)
-                        <p class="text-xs text-orange-600 font-medium">Belum dimasak!</p>
+                        <p class="text-xs text-orange-600 font-medium">Perlu diproses!</p>
                     @endif
                 </div>
             </div>
@@ -44,29 +44,26 @@
 
         <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
             <div class="flex items-center">
-                <div class="p-3 border border-gray-300 rounded-xl">
-                    <i class="fas fa-fire text-gray-500"></i>
+                <div class="p-3 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl shadow-lg">
+                    <i class="fas fa-fire text-white"></i>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Dalam Proses</p>
+                    <p class="text-sm font-medium text-gray-600">Sedang Dimasak</p>
                     <p class="text-2xl font-semibold text-gray-900">{{ $stats['preparing'] ?? 0 }}</p>
-                    @if(($stats['preparing'] ?? 0) > 0)
-                        <p class="text-xs text-blue-600 font-medium">Sedang dimasak!</p>
-                    @endif
                 </div>
             </div>
         </div>
 
         <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
             <div class="flex items-center">
-                <div class="p-3 border border-gray-300 rounded-xl">
-                    <i class="fas fa-check text-gray-500"></i>
+                <div class="p-3 bg-gradient-to-br from-green-400 to-green-600 rounded-xl shadow-lg">
+                    <i class="fas fa-check text-white"></i>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Siap Disajikan</p>
+                    <p class="text-sm font-medium text-gray-600">Siap Saji</p>
                     <p class="text-2xl font-semibold text-gray-900">{{ $stats['ready'] ?? 0 }}</p>
                     @if(($stats['ready'] ?? 0) > 0)
-                        <p class="text-xs text-green-600 font-medium">Menunggu pelayan!</p>
+                        <p class="text-xs text-green-600 font-medium">Siap diantar!</p>
                     @endif
                 </div>
             </div>
@@ -74,17 +71,59 @@
 
         <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
             <div class="flex items-center">
-                <div class="p-3 border border-gray-300 rounded-xl">
-                    <i class="fas fa-utensils text-gray-500"></i>
+                <div class="p-3 bg-gradient-to-br from-gray-400 to-gray-600 rounded-xl shadow-lg">
+                    <i class="fas fa-utensils text-white"></i>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Sudah Disajikan</p>
+                    <p class="text-sm font-medium text-gray-600">Disajikan</p>
                     <p class="text-2xl font-semibold text-gray-900">{{ $stats['served'] ?? 0 }}</p>
-                    @if(($stats['served'] ?? 0) > 0)
-                        <p class="text-xs text-gray-600 font-medium">Selesai!</p>
-                    @endif
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Status Filter -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <div class="flex flex-wrap gap-3">
+            <a href="{{ route('kitchen.orders.index') }}" 
+               class="filter-btn {{ !request('status') ? 'active' : '' }}"
+               data-status="all">
+                <i class="fas fa-list mr-2"></i>
+                Semua
+                <span class="badge">{{ array_sum($stats ?? []) }}</span>
+            </a>
+            
+            <a href="{{ route('kitchen.orders.index', ['status' => 'pending']) }}" 
+               class="filter-btn {{ request('status') === 'pending' ? 'active' : '' }}"
+               data-status="pending">
+                <i class="fas fa-clock mr-2"></i>
+                Menunggu
+                <span class="badge bg-yellow-500">{{ $stats['pending'] ?? 0 }}</span>
+            </a>
+            
+            <a href="{{ route('kitchen.orders.index', ['status' => 'preparing']) }}" 
+               class="filter-btn {{ request('status') === 'preparing' ? 'active' : '' }}"
+               data-status="preparing">
+                <i class="fas fa-fire mr-2"></i>
+                Sedang Dimasak
+                <span class="badge bg-blue-500">{{ $stats['preparing'] ?? 0 }}</span>
+            </a>
+            
+            <a href="{{ route('kitchen.orders.index', ['status' => 'ready']) }}" 
+               class="filter-btn {{ request('status') === 'ready' ? 'active' : '' }}"
+               data-status="ready">
+                <i class="fas fa-check mr-2"></i>
+                Siap Disajikan
+                <span class="badge bg-green-500">{{ $stats['ready'] ?? 0 }}</span>
+            </a>
+
+            <a href="{{ route('kitchen.orders.index', ['status' => 'served']) }}" 
+               class="filter-btn {{ request('status') === 'served' ? 'active' : '' }}"
+               data-status="served">
+                <i class="fas fa-utensils mr-2"></i>
+                Disajikan
+                <span class="badge bg-gray-500">{{ $stats['served'] ?? 0 }}</span>
+            </a>
         </div>
     </div>
 
@@ -111,14 +150,14 @@
                             <div class="flex items-center space-x-2">
                                 @php
                                     $statusConfig = [
-                                        'pending' => ['color' => 'yellow', 'icon' => 'clock', 'label' => 'Pesanan Baru'],
-                                        'preparing' => ['color' => 'blue', 'icon' => 'fire', 'label' => 'Sedang Dimasak'],
-                                        'ready' => ['color' => 'green', 'icon' => 'check', 'label' => 'Siap Disajikan'],
-                                        'served' => ['color' => 'gray', 'icon' => 'utensils', 'label' => 'Sudah Disajikan']
+                                        'pending' => ['color' => 'yellow', 'icon' => 'clock', 'label' => 'Menunggu'],
+                                        'preparing' => ['color' => 'blue', 'icon' => 'fire', 'label' => 'Dimasak'],
+                                        'ready' => ['color' => 'green', 'icon' => 'check', 'label' => 'Siap'],
+                                        'served' => ['color' => 'gray', 'icon' => 'utensils', 'label' => 'Disajikan']
                                     ];
                                     $config = $statusConfig[$order->status] ?? ['color' => 'gray', 'icon' => 'question', 'label' => $order->status];
                                 @endphp
-                                <span class="status-badge border border-{{ $config['color'] }}-300 bg-{{ $config['color'] }}-50 text-{{ $config['color'] }}-700 px-3 py-1 rounded-full text-xs font-medium flex items-center">
+                                <span class="status-badge bg-{{ $config['color'] }}-100 text-{{ $config['color'] }}-800 px-3 py-1 rounded-full text-xs font-medium flex items-center">
                                     <i class="fas fa-{{ $config['icon'] }} mr-1"></i>
                                     {{ $config['label'] }}
                                 </span>
@@ -135,11 +174,11 @@
                                 <i class="fas fa-history mr-2"></i>
                                 {{ $order->created_at->diffForHumans() }}
                             </div>
-                            @if($order->status === 'preparing' && $order->started_cooking_at)
+                            @if($order->status === 'preparing' && $order->cooking_started_at)
                                 <div class="flex items-center text-orange-600">
                                     <i class="fas fa-stopwatch mr-2"></i>
-                                    <span class="cooking-timer" data-start="{{ $order->started_cooking_at }}">
-                                        {{ now()->diffInMinutes($order->started_cooking_at) }}m
+                                    <span class="cooking-timer" data-start="{{ $order->cooking_started_at }}">
+                                        {{ now()->diffInMinutes($order->cooking_started_at) }}m
                                     </span>
                                 </div>
                             @endif
@@ -151,22 +190,22 @@
                         <h4 class="font-semibold text-gray-900 mb-3">Item Pesanan:</h4>
                         <div class="space-y-2 mb-4">
                             @foreach($order->orderItems as $item)
-                                <div class="flex items-center p-2 border border-gray-200 rounded-lg">
-                                    <div class="flex items-center space-x-3 flex-1">
-                                        <div class="w-8 h-8 border border-gray-300 rounded-lg flex items-center justify-center flex-shrink-0">
-                                            <i class="fas fa-utensils text-gray-400 text-xs"></i>
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-utensils text-orange-600"></i>
                                         </div>
-                                        <div class="min-w-0 flex-1">
-                                            <p class="font-medium text-gray-900 text-sm truncate">{{ $item->menuItem->name }}</p>
-                                            <p class="text-xs text-gray-500">
+                                        <div>
+                                            <p class="font-medium text-gray-900">{{ $item->menuItem->name }}</p>
+                                            <p class="text-sm text-gray-600">
                                                 @if($item->menuItem->category)
                                                     {{ $item->menuItem->category->name }}
                                                 @endif
                                             </p>
                                         </div>
                                     </div>
-                                    <div class="flex-shrink-0 ml-3">
-                                        <span class="w-6 h-6 border border-gray-300 rounded-full text-xs font-bold text-gray-700 flex items-center justify-center">
+                                    <div class="text-right">
+                                        <span class="inline-flex items-center justify-center w-8 h-8 bg-orange-100 text-orange-800 rounded-full text-sm font-bold">
                                             {{ $item->quantity }}
                                         </span>
                                     </div>
@@ -192,25 +231,25 @@
                             <div class="flex space-x-2">
                                 @if($order->status === 'pending')
                                     <button onclick="startCooking({{ $order->id }})" 
-                                            class="action-btn border border-blue-300 text-blue-700 hover:bg-blue-50"
+                                            class="action-btn bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
                                             title="Mulai Masak">
                                         <i class="fas fa-fire"></i>
                                     </button>
                                 @elseif($order->status === 'preparing')
                                     <button onclick="markReady({{ $order->id }})" 
-                                            class="action-btn border border-green-300 text-green-700 hover:bg-green-50"
+                                            class="action-btn bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
                                             title="Tandai Siap">
                                         <i class="fas fa-check"></i>
                                     </button>
                                 @elseif($order->status === 'ready')
-                                    <div class="action-btn border border-green-300 bg-green-50 text-green-700 cursor-default"
+                                    <div class="action-btn bg-gradient-to-r from-green-100 to-green-200 text-green-700 cursor-default"
                                          title="Siap Disajikan">
                                         <i class="fas fa-check-circle"></i>
                                     </div>
                                 @endif
                                 
                                 <a href="{{ route('kitchen.orders.show', $order) }}" 
-                                   class="action-btn border border-gray-300 text-gray-700 hover:bg-gray-50"
+                                   class="action-btn bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white"
                                    title="Detail Pesanan">
                                     <i class="fas fa-eye"></i>
                                 </a>
@@ -233,12 +272,12 @@
             @endif
         @else
             <!-- Empty State -->
-            <div class="bg-white rounded-xl shadow-lg p-8 text-center">
-                <div class="text-gray-400 mb-3">
-                    <i class="fas fa-utensils text-4xl"></i>
+            <div class="bg-white rounded-xl shadow-lg p-12 text-center">
+                <div class="text-gray-400 mb-4">
+                    <i class="fas fa-utensils text-6xl"></i>
                 </div>
-                <h3 class="text-base font-semibold text-gray-900 mb-2">Tidak Ada Pesanan</h3>
-                <p class="text-gray-600 mb-4 text-sm">
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Tidak Ada Pesanan</h3>
+                <p class="text-gray-600 mb-6">
                     @if(request('status'))
                         Tidak ada pesanan dengan status "{{ request('status') }}" saat ini.
                     @else
@@ -247,7 +286,7 @@
                 </p>
                 @if(request('status'))
                     <a href="{{ route('kitchen.orders.index') }}" 
-                       class="inline-flex items-center px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm">
+                       class="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
                         <i class="fas fa-list mr-2"></i>
                         Lihat Semua Pesanan
                     </a>
@@ -266,6 +305,18 @@
 </div>
 
 <style>
+.filter-btn {
+    @apply inline-flex items-center px-4 py-2 bg-gray-100 text-gray-600 rounded-lg font-medium transition-all hover:bg-gray-200;
+}
+
+.filter-btn.active {
+    @apply bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg;
+}
+
+.badge {
+    @apply inline-flex items-center justify-center w-6 h-6 bg-gray-400 text-white text-xs font-bold rounded-full ml-2;
+}
+
 .action-btn {
     @apply w-10 h-10 rounded-lg flex items-center justify-center font-medium transition-all transform hover:scale-105 shadow-lg;
 }

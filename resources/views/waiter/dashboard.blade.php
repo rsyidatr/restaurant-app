@@ -66,33 +66,6 @@
     </div>
 </div>
 
-<!-- Quick Actions -->
-<div class="bg-white rounded-lg shadow p-6 mb-8">
-    <h2 class="text-lg font-semibold text-gray-900 mb-5">Aksi Cepat</h2>
-    
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <a href="{{ route('waiter.orders.index') }}" class="bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg p-4 text-center transition duration-200">
-            <i class="fas fa-clipboard-list text-2xl text-gray-600 mb-2 block"></i>
-            <p class="text-sm font-medium text-gray-900">Kelola Pesanan</p>
-        </a>
-        
-        <a href="{{ route('waiter.tables.index') }}" class="bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg p-4 text-center transition duration-200">
-            <i class="fas fa-chair text-2xl text-gray-600 mb-2 block"></i>
-            <p class="text-sm font-medium text-gray-900">Status Meja</p>
-        </a>
-        
-        <a href="{{ route('waiter.reservations.index') }}" class="bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg p-4 text-center transition duration-200">
-            <i class="fas fa-calendar-check text-2xl text-gray-600 mb-2 block"></i>
-            <p class="text-sm font-medium text-gray-900">Reservasi</p>
-        </a>
-        
-        <a href="{{ route('waiter.orders.create') }}" class="bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg p-4 text-center transition duration-200">
-            <i class="fas fa-plus-circle text-2xl text-blue-600 mb-2 block"></i>
-            <p class="text-sm font-medium text-blue-900">Pesanan Baru</p>
-        </a>
-    </div>
-</div>
-
 <!-- Recent Orders -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
     <!-- Orders List -->
@@ -160,4 +133,19 @@
         @endif
     </div>
 </div>
+
+@if(config('app.debug'))
+<!-- Development Tools (Only shown in debug mode) -->
+<div class="bg-yellow-50 border border-yellow-200 rounded-lg shadow p-4 mt-6">
+    <h3 class="text-lg font-semibold text-yellow-800 mb-3">
+        <i class="fas fa-wrench mr-2"></i>Development Tools
+    </h3>
+    <div class="flex space-x-3">
+        <a href="{{ route('waiter.notification-test') }}" 
+           class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm">
+            <i class="fas fa-bell mr-2"></i>Test Notifikasi
+        </a>
+    </div>
+</div>
+@endif
 @endsection

@@ -45,7 +45,27 @@ class OrderController extends Controller
             $tables = collect(); // Return empty collection if table model fails
         }
         
-        return view('waiter.orders.index', compact('orders', 'tables'));
+        // Get stats for today's orders
+        $stats = [
+            'pending' => Order::where('order_type', 'dine_in')
+                             ->where('status', 'pending')
+                             ->whereDate('created_at', today())
+                             ->count(),
+            'preparing' => Order::where('order_type', 'dine_in')
+                               ->where('status', 'preparing')
+                               ->whereDate('created_at', today())
+                               ->count(),
+            'ready' => Order::where('order_type', 'dine_in')
+                           ->where('status', 'ready')
+                           ->whereDate('created_at', today())
+                           ->count(),
+            'served' => Order::where('order_type', 'dine_in')
+                            ->where('status', 'served')
+                            ->whereDate('created_at', today())
+                            ->count(),
+        ];
+        
+        return view('waiter.orders.index', compact('orders', 'tables', 'stats'));
     }
     
     public function show(Order $order)
@@ -53,6 +73,59 @@ class OrderController extends Controller
         $order->load(['user', 'table', 'orderItems.menuItem', 'payment']);
         
         return view('waiter.orders.show', compact('order'));
+    }
+
+    public function edit(Order $order)
+    {
+        // Only allow editing for certain statuses
+        if (!in_array($order->status, ['pending', 'preparing'])) {
+            return redirect()->route('waiter.orders.index')
+                           ->with('error', 'Pesanan dengan status ' . $order->status . ' tidak dapat diedit.');
+        }
+
+        $order->load(['user', 'table', 'orderItems.menuItem']);
+        
+        // Get available tables for table change if needed
+        try {
+            $tables = Table::where('status', 'available')
+                          ->orWhere('id', $order->table_id)
+                          ->orderBy('table_number')
+                          ->get();
+        } catch (\Exception $e) {
+            $tables = collect();
+        }
+
+        return view('waiter.orders.edit', compact('order', 'tables'));
+    }
+
+    public function update(Request $request, Order $order)
+    {
+        // Only allow updating for certain statuses
+        if (!in_array($order->status, ['pending', 'preparing'])) {
+            return redirect()->route('waiter.orders.index')
+                           ->with('error', 'Pesanan dengan status ' . $order->status . ' tidak dapat diupdate.');
+        }
+
+        $request->validate([
+            'table_id' => 'nullable|exists:tables,id',
+            'notes' => 'nullable|string|max:500',
+            'special_instructions' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            $order->update([
+                'table_id' => $request->table_id,
+                'notes' => $request->notes,
+                'special_instructions' => $request->special_instructions,
+            ]);
+
+            return redirect()->route('waiter.orders.show', $order)
+                           ->with('success', 'Pesanan berhasil diupdate.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                           ->with('error', 'Gagal mengupdate pesanan: ' . $e->getMessage())
+                           ->withInput();
+        }
     }
     
     public function updateStatus(Request $request, Order $order)

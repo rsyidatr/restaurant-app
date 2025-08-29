@@ -201,7 +201,7 @@
                 <div class="bg-white rounded p-3 border">
                     <h4 class="font-semibold text-purple-600 mb-2">Customer</h4>
                     <p><strong>Email:</strong> customer@test.com</p>
-                    <p><strong>Password:</strong> password123</p>
+                    <p><strong>Password:</strong> password</p>
                 </div>
             </div>
         </div>

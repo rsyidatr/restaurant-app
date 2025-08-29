@@ -31,7 +31,6 @@ class TableController extends Controller
             'available' => $statusCounts['available'],
             'occupied' => $statusCounts['occupied'],
             'reserved' => $statusCounts['reserved'],
-            'maintenance' => $statusCounts['cleaning'],
             'total' => Table::count()
         ];
         

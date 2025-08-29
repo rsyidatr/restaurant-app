@@ -381,58 +381,136 @@
 @push('scripts')
 <script>
     function confirmOrder(orderId) {
-        if (confirm('Konfirmasi pesanan ini? Pesanan akan dikirim ke dapur.')) {
-            fetch(`/waiter/orders/${orderId}/confirm`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showToast(data.message, 'success');
+        // Show confirmation notification first
+        const confirmId = showWarning('Yakin ingin mengkonfirmasi pesanan ini? Pesanan akan dikirim ke dapur.', false);
+        
+        // Create custom confirmation dialog
+        const notification = document.getElementById(`notification-${confirmId}`);
+        const content = notification.querySelector('.notification-content');
+        
+        // Add confirm/cancel buttons
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'flex space-x-2 mt-3';
+        buttonContainer.innerHTML = `
+            <button onclick="proceedConfirmOrder(${orderId}, '${confirmId}')" 
+                    class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700">
+                Ya, Konfirmasi
+            </button>
+            <button onclick="notificationManager.hide('${confirmId}')" 
+                    class="px-3 py-1 bg-gray-400 text-white text-xs rounded hover:bg-gray-500">
+                Batal
+            </button>
+        `;
+        content.appendChild(buttonContainer);
+    }
+
+    function proceedConfirmOrder(orderId, confirmId) {
+        // Hide confirmation dialog
+        notificationManager.hide(confirmId);
+        
+        // Show processing notification
+        const processingId = showInfo('Mengkonfirmasi pesanan...', false);
+        
+        fetch(`/waiter/orders/${orderId}/confirm`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Hide processing notification
+            notificationManager.hide(processingId);
+            
+            if (data.success) {
+                showSuccess(data.message);
+                setTimeout(() => {
                     location.reload();
-                } else {
-                    showToast(data.message, 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('Terjadi kesalahan', 'error');
-            });
-        }
+                }, 1500);
+            } else {
+                showError(data.message);
+            }
+        })
+        .catch(error => {
+            // Hide processing notification
+            notificationManager.hide(processingId);
+            console.error('Error:', error);
+            showError('Terjadi kesalahan saat mengkonfirmasi pesanan');
+        });
     }
 
     function markAsServed(orderId) {
-        if (confirm('Tandai pesanan ini sebagai telah disajikan?')) {
-            fetch(`/waiter/orders/${orderId}/mark-served`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showToast(data.message, 'success');
+        // Show confirmation notification first
+        const confirmId = showWarning('Yakin ingin menandai pesanan ini sebagai telah disajikan?', false);
+        
+        // Create custom confirmation dialog
+        const notification = document.getElementById(`notification-${confirmId}`);
+        const content = notification.querySelector('.notification-content');
+        
+        // Add confirm/cancel buttons
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'flex space-x-2 mt-3';
+        buttonContainer.innerHTML = `
+            <button onclick="proceedMarkAsServed(${orderId}, '${confirmId}')" 
+                    class="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">
+                Ya, Sudah Disajikan
+            </button>
+            <button onclick="notificationManager.hide('${confirmId}')" 
+                    class="px-3 py-1 bg-gray-400 text-white text-xs rounded hover:bg-gray-500">
+                Batal
+            </button>
+        `;
+        content.appendChild(buttonContainer);
+    }
+
+    function proceedMarkAsServed(orderId, confirmId) {
+        // Hide confirmation dialog
+        notificationManager.hide(confirmId);
+        
+        // Show processing notification
+        const processingId = showInfo('Menandai pesanan sebagai disajikan...', false);
+        
+        fetch(`/waiter/orders/${orderId}/mark-served`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Hide processing notification
+            notificationManager.hide(processingId);
+            
+            if (data.success) {
+                showSuccess(data.message);
+                setTimeout(() => {
                     location.reload();
-                } else {
-                    showToast(data.message, 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('Terjadi kesalahan', 'error');
-            });
-        }
+                }, 1500);
+            } else {
+                showError(data.message);
+            }
+        })
+        .catch(error => {
+            // Hide processing notification
+            notificationManager.hide(processingId);
+            console.error('Error:', error);
+            showError('Terjadi kesalahan');
+        });
     }
 
     function printReceipt(orderId) {
+        // Show info notification
+        showInfo('Membuka struk untuk dicetak...');
+        
         // Open print receipt in new window
-        window.open(`/waiter/orders/${orderId}/receipt`, '_blank', 'width=400,height=600');
+        const printWindow = window.open(`/waiter/orders/${orderId}/receipt`, '_blank', 'width=400,height=600');
+        
+        // Check if popup was blocked
+        if (!printWindow || printWindow.closed || typeof printWindow.closed === 'undefined') {
+            showWarning('Pop-up diblokir! Silakan aktifkan pop-up untuk mencetak struk.');
+        }
     }
 </script>
 @endpush

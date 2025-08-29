@@ -13,23 +13,28 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // Data untuk dashboard koki
-        $todayOrders = Order::whereDate('created_at', Carbon::today())
-                           ->whereIn('status', ['pending', 'processing'])
-                           ->count();
+        // Data untuk dashboard koki - hanya pesanan hari ini
+        $todayOrders = Order::whereDate('created_at', Carbon::today())->count();
         
-        $pendingOrders = Order::where('status', 'pending')->count();
-        $processingOrders = Order::where('status', 'processing')->count();
-        $readyOrders = Order::where('status', 'ready')->count();
+        // Pesanan hari ini berdasarkan status
+        $pendingOrders = Order::whereDate('created_at', Carbon::today())
+                             ->where('status', 'pending')->count();
+        $processingOrders = Order::whereDate('created_at', Carbon::today())
+                                ->where('status', 'preparing')->count();
+        $readyOrders = Order::whereDate('created_at', Carbon::today())
+                           ->where('status', 'ready')->count();
+        $completedOrders = Order::whereDate('created_at', Carbon::today())
+                                ->where('status', 'completed')->count();
         
         $availableMenus = MenuItem::where('is_available', true)->count();
         $unavailableMenus = MenuItem::where('is_available', false)->count();
         
-        // Recent orders yang perlu diproses
+        // Pesanan masuk hari ini yang perlu diproses (urut berdasarkan waktu masuk)
         $recentOrders = Order::with(['user', 'table', 'orderItems.menuItem'])
-                            ->whereIn('status', ['pending', 'processing'])
+                            ->whereDate('created_at', Carbon::today())
+                            ->whereIn('status', ['pending', 'preparing', 'ready'])
                             ->orderBy('created_at', 'asc')
-                            ->take(10)
+                            ->take(15)
                             ->get();
         
         // Menu items yang perlu perhatian (stok habis atau hampir habis)
@@ -43,6 +48,7 @@ class DashboardController extends Controller
             'pendingOrders',
             'processingOrders', 
             'readyOrders',
+            'completedOrders',
             'availableMenus',
             'unavailableMenus',
             'recentOrders',

@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\MultiSessionController;
@@ -8,6 +10,7 @@ use App\Http\Controllers\Customer\MenuController;
 use App\Http\Controllers\Customer\ReservationController;
 use App\Http\Controllers\Customer\CartController;
 use App\Http\Controllers\Customer\OrderHistoryController;
+use App\Http\Controllers\Customer\DashboardController as CustomerDashboardController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MenuController as AdminMenuController;
@@ -223,6 +226,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 Route::middleware(['auth', 'role:pelayan'])->prefix('waiter')->name('waiter.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Waiter\DashboardController::class, 'index'])->name('dashboard');
     
+    // Notification Test (Development only)
+    Route::get('/notification-test', function () {
+        return view('waiter.notification-test');
+    })->name('notification-test');
+    
     // Order Management
     Route::prefix('orders')->name('orders.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Waiter\OrderController::class, 'index'])->name('index');
@@ -277,22 +285,58 @@ Route::middleware(['auth', 'role:koki'])->prefix('kitchen')->name('kitchen.')->g
         Route::get('/', [\App\Http\Controllers\Kitchen\MenuAvailabilityController::class, 'index'])->name('index');
         Route::get('/{menuItem}', [\App\Http\Controllers\Kitchen\MenuAvailabilityController::class, 'show'])->name('show');
         Route::post('/{menuItem}/toggle-availability', [\App\Http\Controllers\Kitchen\MenuAvailabilityController::class, 'toggleAvailability'])->name('toggleAvailability');
-        Route::post('/bulk-update', [\App\Http\Controllers\Kitchen\MenuAvailabilityController::class, 'bulkUpdateAvailability'])->name('bulkUpdate');
+        Route::post('/bulk-update-availability', [\App\Http\Controllers\Kitchen\MenuAvailabilityController::class, 'bulkUpdateAvailability'])->name('bulkUpdateAvailability');
     });
+
+    // Development/Testing Routes
+    if (config('app.debug')) {
+        Route::get('/notification-test', function () {
+            return view('kitchen.test.notifications');
+        })->name('notification-test');
+        
+        // Simple test dashboard
+        Route::get('/dashboard-test', function () {
+            $todayOrders = 5;
+            $pendingOrders = 2;
+            $processingOrders = 1;
+            $readyOrders = 1;
+            $recentOrders = collect();
+            
+            return view('kitchen.dashboard-test', compact(
+                'todayOrders', 'pendingOrders', 'processingOrders', 'readyOrders', 'recentOrders'
+            ));
+        })->name('dashboard-test');
+    }
 });
 
-// Customer Routes (perlu login)
+// Customer Routes (perlu login) 
 Route::middleware(['auth', 'role:customer'])->group(function () {
+    // Main customer home/dashboard
     Route::get('/customer', function () {
         return view('customer.home.index');
     })->name('customer.home');
+    
+    Route::get('/customer/dashboard', function () {
+        return view('customer.home.index');
+    })->name('customer.dashboard');
+    
+    // Customer specific menu, cart, and orders
+    Route::get('/customer/menu', [MenuController::class, 'index'])->name('customer.menu.logged');
+    Route::get('/customer/cart', [CartController::class, 'index'])->name('customer.cart.logged');
+    Route::get('/customer/orders', [OrderHistoryController::class, 'index'])->name('customer.orders');
+    Route::get('/customer/orders/{order}', [OrderHistoryController::class, 'show'])->name('customer.orders.show');
+    Route::get('/customer/reservations', [ReservationController::class, 'index'])->name('customer.reservations');
 });
 
-// Waiter Routes (Legacy - redirect to new routes)
+// Legacy Routes - redirect to new routes
 Route::middleware(['auth', 'role:pelayan'])->group(function () {
     Route::get('/waiter', function () {
         return redirect()->route('waiter.dashboard');
     })->name('waiter.dashboard.legacy');
+    
+    Route::get('/pelayan', function () {
+        return redirect()->route('waiter.dashboard');
+    });
 });
 
 // Kitchen Routes (Legacy - redirect to new routes)
@@ -300,7 +344,33 @@ Route::middleware(['auth', 'role:koki'])->group(function () {
     Route::get('/kitchen', function () {
         return redirect()->route('kitchen.dashboard');
     })->name('kitchen.dashboard.legacy');
+    
+    Route::get('/koki', function () {
+        return redirect()->route('kitchen.dashboard');
+    });
 });
+
+// Admin legacy routes
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/admin', function () {
+        return redirect()->route('admin.dashboard');
+    })->name('admin.dashboard.legacy');
+});
+
+// Global dashboard route - redirects based on user role
+Route::middleware('auth')->get('/dashboard', function () {
+    $user = Auth::user();
+    
+    $redirectRoute = match($user->role) {
+        'admin' => 'admin.dashboard',
+        'pelayan' => 'waiter.dashboard',
+        'koki' => 'kitchen.dashboard',
+        'customer' => 'customer.home',
+        default => 'home',
+    };
+    
+    return redirect()->route($redirectRoute);
+})->name('dashboard');
 
 // Debug Routes untuk troubleshooting waiter login
 Route::get('/debug-auth', function () {
@@ -340,4 +410,54 @@ Route::get('/debug-waiter-direct', function () {
             'trace' => $e->getTraceAsString()
         ]);
     }
+});
+
+// Kitchen login test page
+Route::get('/kitchen-login-test', function () {
+    return view('kitchen-login-test');
+});
+
+// Debug route untuk test kitchen access
+Route::get('/debug-kitchen', function () {
+    $user = Auth::user();
+    
+    if (!$user) {
+        return response()->json(['error' => 'Not authenticated', 'redirect' => '/login']);
+    }
+    
+    return response()->json([
+        'user' => $user->name,
+        'email' => $user->email,
+        'role' => $user->role,
+        'is_kitchen' => $user->role === 'koki',
+        'can_access_kitchen' => $user->role === 'koki' ? 'YES' : 'NO',
+        'kitchen_dashboard_url' => route('kitchen.dashboard')
+    ]);
+});
+
+// Test login debug route
+Route::get('/test-login-debug', function () {
+    return view('test-login-debug');
+});
+
+// Test all dashboards route - untuk debugging
+Route::get('/test-dashboards', function () {
+    $dashboards = [
+        'admin' => route('admin.dashboard'),
+        'waiter' => route('waiter.dashboard'), 
+        'kitchen' => route('kitchen.dashboard'),
+        'customer' => route('customer.home'),
+        'multi-session' => route('multi-session.dashboard')
+    ];
+    
+    return response()->json([
+        'message' => 'All dashboard routes are working',
+        'dashboards' => $dashboards,
+        'test_users' => [
+            'admin' => 'admin@test.com',
+            'waiter' => 'waiter@test.com',
+            'chef' => 'chef@test.com', 
+            'customer' => 'customer@test.com'
+        ]
+    ]);
 });

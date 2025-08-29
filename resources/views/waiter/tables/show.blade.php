@@ -211,14 +211,17 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                location.reload();
+                showSuccess('Status meja berhasil diubah');
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
             } else {
-                alert('Gagal mengubah status meja');
+                showError('Gagal mengubah status meja');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Terjadi kesalahan');
+            showError('Terjadi kesalahan');
         });
     }
 </script>

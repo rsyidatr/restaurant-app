@@ -129,7 +129,7 @@
                                 @if($table->status == 'available') Tersedia
                                 @elseif($table->status == 'occupied') Terisi
                                 @elseif($table->status == 'reserved') Direservasi
-                                @elseif($table->status == 'cleaning') Maintenance
+                                @elseif($table->status == 'cleaning') Dibersihkan
                                 @endif
                             </div>
 
@@ -200,7 +200,7 @@
                                 @if($table->status == 'available') Tersedia
                                 @elseif($table->status == 'occupied') Terisi
                                 @elseif($table->status == 'reserved') Direservasi
-                                @elseif($table->status == 'cleaning') Maintenance
+                                @elseif($table->status == 'cleaning') Dibersihkan
                                 @endif
                             </div>
 
@@ -261,12 +261,12 @@
                                     @if($table->status == 'available') bg-green-100 text-green-800
                                     @elseif($table->status == 'occupied') bg-red-100 text-red-800
                                     @elseif($table->status == 'reserved') bg-yellow-100 text-yellow-800
-                                    @elseif($table->status == 'maintenance') bg-gray-100 text-gray-800
+                                    @elseif($table->status == 'cleaning') bg-gray-100 text-gray-800
                                     @endif">
                                     @if($table->status == 'available') Tersedia
                                     @elseif($table->status == 'occupied') Terisi
                                     @elseif($table->status == 'reserved') Direservasi
-                                    @elseif($table->status == 'cleaning') Maintenance
+                                    @elseif($table->status == 'cleaning') Dibersihkan
                                     @endif
                                 </span>
                             </td>
@@ -299,7 +299,7 @@
                                         <input type="hidden" name="status" value="available">
                                         <button type="submit" class="text-green-600 hover:text-green-900">Clear</button>
                                     </form>
-                                @elseif($table->status == 'maintenance')
+                                @elseif($table->status == 'cleaning')
                                     <form action="{{ route('admin.tables.updateStatus', $table) }}" method="POST" class="inline">
                                         @csrf
                                         @method('PUT')
@@ -334,7 +334,7 @@
             </div>
             <div class="flex items-center">
                 <div class="w-4 h-4 bg-gray-500 rounded-full mr-2"></div>
-                <span class="text-sm text-gray-700">Maintenance</span>
+                <span class="text-sm text-gray-700">Dibersihkan</span>
             </div>
         </div>
     </div>

@@ -16,43 +16,31 @@
         </div>
     </div>
 
-    <!-- Filter dan Search -->
-    <div class="bg-white rounded-lg shadow p-4 mb-6">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-                <input type="text" 
-                       id="searchOrder" 
-                       placeholder="Cari nomor pesanan..."
-                       value="{{ request('search') }}"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md">
-            </div>
-            <div>
-                <input type="date" 
-                       id="dateFilter"
-                       value="{{ request('date') }}"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md">
-            </div>
-            <div>
-                <select id="tableFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                    <option value="">Semua Meja</option>
-                    @if(isset($tables) && $tables->count() > 0)
-                        @foreach($tables as $table)
-                            <option value="{{ $table->id }}" {{ request('table_id') == $table->id ? 'selected' : '' }}>
-                                Meja {{ $table->table_number }}
-                            </option>
-                        @endforeach
-                    @else
-                        <option disabled>Tidak ada meja tersedia</option>
-                    @endif
-                </select>
-            </div>
-            <div>
-                <button onclick="refreshOrders()" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
-                    Refresh
-                </button>
+    <!-- Status Order Cards in One Row -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-yellow-100">
+                    <i class="fas fa-clock text-yellow-600"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Pesanan Baru</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ $stats['pending'] ?? 0 }}</p>
+                </div>
             </div>
         </div>
-    </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-blue-100">
+                    <i class="fas fa-fire text-blue-600"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Sedang Dimasak</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ $stats['preparing'] ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
 
         <div class="bg-white rounded-lg shadow p-6">
             <div class="flex items-center">
@@ -77,63 +65,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Filters -->
-    <div class="bg-white rounded-lg shadow p-6">
-        <form method="GET" action="{{ route('waiter.orders.index') }}" class="flex flex-wrap gap-4 items-end">
-            <!-- Status Filter -->
-            <div class="flex-1 min-w-48">
-                <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Status Pesanan</label>
-                <select name="status" id="status" 
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    <option value="">Semua Status</option>
-                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pesanan Baru</option>
-                    <option value="preparing" {{ request('status') == 'preparing' ? 'selected' : '' }}>Sedang Dimasak</option>
-                    <option value="ready" {{ request('status') == 'ready' ? 'selected' : '' }}>Siap Disajikan</option>
-                    <option value="served" {{ request('status') == 'served' ? 'selected' : '' }}>Selesai</option>
-                </select>
-            </div>
-
-            <!-- Table Filter -->
-            <div class="flex-1 min-w-48">
-                <label for="table" class="block text-sm font-medium text-gray-700 mb-2">Meja</label>
-                <select name="table" id="table" 
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    <option value="">Semua Meja</option>
-                    @foreach($tables as $table)
-                        <option value="{{ $table->id }}" 
-                                {{ request('table') == $table->id ? 'selected' : '' }}>
-                            Meja {{ $table->table_number }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <!-- Date Filter -->
-            <div class="flex-1 min-w-48">
-                <label for="date" class="block text-sm font-medium text-gray-700 mb-2">Tanggal</label>
-                <input type="date" name="date" id="date" 
-                       value="{{ request('date') }}"
-                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-            </div>
-
-            <!-- Filter Button -->
-            <div>
-                <button type="submit" 
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors">
-                    <i class="fas fa-filter mr-2"></i>Filter
-                </button>
-            </div>
-
-            <!-- Clear Filter -->
-            <div>
-                <a href="{{ route('waiter.orders.index') }}" 
-                   class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md transition-colors">
-                    <i class="fas fa-times mr-2"></i>Reset
-                </a>
-            </div>
-        </form>
     </div>
 
     <!-- Orders List -->
@@ -226,6 +157,14 @@
                                     <i class="fas fa-eye"></i>
                                 </a>
                                 
+                                @if($order->status === 'pending')
+                                    <button onclick="confirmOrder({{ $order->id }})" 
+                                            class="text-blue-600 hover:text-blue-900"
+                                            title="Konfirmasi Pesanan">
+                                        <i class="fas fa-clipboard-check"></i>
+                                    </button>
+                                @endif
+
                                 @if($order->status === 'ready')
                                     <button onclick="markAsServed({{ $order->id }})" 
                                             class="text-green-600 hover:text-green-900"
@@ -290,38 +229,9 @@
         }
     }
 
-    // Filter functions
-    function refreshOrders() {
-        const status = document.getElementById('statusFilter').value;
-        const search = document.getElementById('searchOrder').value;
-        const date = document.getElementById('dateFilter').value;
-        const tableId = document.getElementById('tableFilter').value;
-        
-        const params = new URLSearchParams();
-        if (status) params.append('status', status);
-        if (search) params.append('search', search);
-        if (date) params.append('date', date);
-        if (tableId) params.append('table_id', tableId);
-        
-        const url = `{{ route('waiter.orders.index') }}?${params.toString()}`;
-        window.location.href = url;
-    }
-
-    // Add event listeners for real-time filtering
+    // Add event listeners
     document.addEventListener('DOMContentLoaded', function() {
         startAutoRefresh();
-        
-        // Add event listeners to filters
-        document.getElementById('statusFilter').addEventListener('change', refreshOrders);
-        document.getElementById('dateFilter').addEventListener('change', refreshOrders);
-        document.getElementById('tableFilter').addEventListener('change', refreshOrders);
-        
-        // Add search functionality with debounce
-        let searchTimeout;
-        document.getElementById('searchOrder').addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(refreshOrders, 500);
-        });
     });
     
     document.addEventListener('visibilitychange', function() {
@@ -332,40 +242,148 @@
         }
     });
 
+    function confirmOrder(orderId) {
+        // Show confirmation notification first
+        const confirmId = showWarning('Yakin ingin mengkonfirmasi pesanan ini? Pesanan akan dikirim ke dapur.', false);
+        
+        // Create custom confirmation dialog
+        const notification = document.getElementById(`notification-${confirmId}`);
+        const content = notification.querySelector('.notification-content');
+        
+        // Add confirm/cancel buttons
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'flex space-x-2 mt-3';
+        buttonContainer.innerHTML = `
+            <button onclick="proceedConfirmOrder(${orderId}, '${confirmId}')" 
+                    class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700">
+                Ya, Konfirmasi
+            </button>
+            <button onclick="notificationManager.hide('${confirmId}')" 
+                    class="px-3 py-1 bg-gray-400 text-white text-xs rounded hover:bg-gray-500">
+                Batal
+            </button>
+        `;
+        content.appendChild(buttonContainer);
+    }
+
+    function proceedConfirmOrder(orderId, confirmId) {
+        // Hide confirmation dialog
+        notificationManager.hide(confirmId);
+        
+        // Show processing notification
+        const processingId = showInfo('Mengkonfirmasi pesanan...', false);
+        
+        fetch(`/waiter/orders/${orderId}/confirm`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Hide processing notification
+            notificationManager.hide(processingId);
+            
+            if (data.success) {
+                showSuccess(data.message);
+                
+                // Update row status
+                const row = document.getElementById(`order-row-${orderId}`);
+                const statusCell = row.querySelector('td:nth-child(5) span');
+                statusCell.className = 'inline-flex px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800';
+                statusCell.textContent = 'Sedang Dimasak';
+                
+                // Update action buttons
+                const actionContainer = row.querySelector('td:last-child .flex');
+                const confirmButton = actionContainer.querySelector('button[onclick*="confirmOrder"]');
+                if (confirmButton) {
+                    confirmButton.remove();
+                }
+                
+                // Refresh the page after a short delay to show updated data
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                showError(data.message);
+            }
+        })
+        .catch(error => {
+            // Hide processing notification
+            notificationManager.hide(processingId);
+            console.error('Error:', error);
+            showError('Terjadi kesalahan saat mengkonfirmasi pesanan');
+        });
+    }
+
     function markAsServed(orderId) {
-        if (confirm('Tandai pesanan ini sebagai telah disajikan?')) {
-            fetch(`/waiter/orders/${orderId}/mark-served`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        // Show confirmation notification first
+        const confirmId = showWarning('Yakin ingin menandai pesanan ini sebagai telah disajikan?', false);
+        
+        // Create custom confirmation dialog
+        const notification = document.getElementById(`notification-${confirmId}`);
+        const content = notification.querySelector('.notification-content');
+        
+        // Add confirm/cancel buttons
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'flex space-x-2 mt-3';
+        buttonContainer.innerHTML = `
+            <button onclick="proceedMarkAsServed(${orderId}, '${confirmId}')" 
+                    class="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">
+                Ya, Sudah Disajikan
+            </button>
+            <button onclick="notificationManager.hide('${confirmId}')" 
+                    class="px-3 py-1 bg-gray-400 text-white text-xs rounded hover:bg-gray-500">
+                Batal
+            </button>
+        `;
+        content.appendChild(buttonContainer);
+    }
+
+    function proceedMarkAsServed(orderId, confirmId) {
+        // Hide confirmation dialog
+        notificationManager.hide(confirmId);
+        
+        // Show processing notification
+        const processingId = showInfo('Menandai pesanan sebagai disajikan...', false);
+        
+        fetch(`/waiter/orders/${orderId}/mark-served`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Hide processing notification
+            notificationManager.hide(processingId);
+            
+            if (data.success) {
+                showSuccess(data.message);
+                
+                // Update row status
+                const row = document.getElementById(`order-row-${orderId}`);
+                const statusCell = row.querySelector('td:nth-child(5) span');
+                statusCell.className = 'inline-flex px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800';
+                statusCell.textContent = 'Selesai';
+                
+                // Remove serve button
+                const serveButton = row.querySelector('button[onclick*="markAsServed"]');
+                if (serveButton) {
+                    serveButton.remove();
                 }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showToast(data.message, 'success');
-                    
-                    // Update row status
-                    const row = document.getElementById(`order-row-${orderId}`);
-                    const statusCell = row.querySelector('td:nth-child(5) span');
-                    statusCell.className = 'inline-flex px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800';
-                    statusCell.textContent = 'Selesai';
-                    
-                    // Remove serve button
-                    const serveButton = row.querySelector('button[onclick*="markAsServed"]');
-                    if (serveButton) {
-                        serveButton.remove();
-                    }
-                } else {
-                    showToast(data.message, 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('Terjadi kesalahan', 'error');
-            });
-        }
+            } else {
+                showError(data.message);
+            }
+        })
+        .catch(error => {
+            // Hide processing notification
+            notificationManager.hide(processingId);
+            console.error('Error:', error);
+            showError('Terjadi kesalahan');
+        });
     }
 </script>
 @endpush

@@ -279,12 +279,12 @@
             if (data.success) {
                 location.reload();
             } else {
-                alert('Gagal mengubah status reservasi');
+                showError('Gagal mengubah status reservasi');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Terjadi kesalahan');
+            showError('Terjadi kesalahan');
         });
     }
 
@@ -306,12 +306,12 @@
             if (data.success) {
                 location.reload();
             } else {
-                alert(data.message || 'Gagal check-in reservasi');
+                showError(data.message || 'Gagal check-in reservasi');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Terjadi kesalahan');
+            showError('Terjadi kesalahan');
         });
     }
 
@@ -333,12 +333,12 @@
             if (data.success) {
                 location.reload();
             } else {
-                alert(data.message || 'Gagal membatalkan reservasi');
+                showError(data.message || 'Gagal membatalkan reservasi');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Terjadi kesalahan');
+            showError('Terjadi kesalahan');
         });
     }
 
@@ -362,7 +362,7 @@
         
         const tableId = document.getElementById('tableSelect').value;
         if (!tableId) {
-            alert('Pilih meja terlebih dahulu');
+            showWarning('Pilih meja terlebih dahulu');
             return;
         }
 
@@ -380,12 +380,12 @@
                 closeAssignTableModal();
                 location.reload();
             } else {
-                alert(data.message || 'Gagal assign meja');
+                showError(data.message || 'Gagal assign meja');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Terjadi kesalahan');
+            showError('Terjadi kesalahan');
         });
     });
 </script>

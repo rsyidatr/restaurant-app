@@ -13,22 +13,29 @@ class KitchenOrderController extends Controller
     {
         $query = Order::with(['user', 'table', 'orderItems.menuItem']);
         
-        // Filter berdasarkan status
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        } else {
-            // Default tampilkan yang perlu diproses dapur
-            $query->whereIn('status', ['pending', 'processing', 'ready']);
-        }
+        // Tampilkan semua pesanan yang perlu diproses dapur
+        $query->whereIn('status', ['pending', 'preparing', 'ready']);
         
-        // Filter berdasarkan tanggal
+        // Filter berdasarkan tanggal - default hari ini
         if ($request->filled('date')) {
             $query->whereDate('created_at', $request->date);
+        } else {
+            // Default tampilkan pesanan hari ini
+            $query->whereDate('created_at', now()->toDateString());
         }
         
         $orders = $query->orderBy('created_at', 'asc')->paginate(15);
         
-        return view('kitchen.orders.index', compact('orders'));
+        // Statistik untuk dashboard (tidak untuk filter)
+        $todayDate = $request->filled('date') ? $request->date : now()->toDateString();
+        $stats = [
+            'pending' => Order::whereDate('created_at', $todayDate)->where('status', 'pending')->count(),
+            'preparing' => Order::whereDate('created_at', $todayDate)->where('status', 'preparing')->count(),
+            'ready' => Order::whereDate('created_at', $todayDate)->where('status', 'ready')->count(),
+            'served' => Order::whereDate('created_at', $todayDate)->where('status', 'served')->count(),
+        ];
+        
+        return view('kitchen.orders.index', compact('orders', 'stats'));
     }
     
     public function show(Order $order)
@@ -41,7 +48,7 @@ class KitchenOrderController extends Controller
     public function updateStatus(Request $request, Order $order)
     {
         $request->validate([
-            'status' => 'required|in:pending,processing,ready'
+            'status' => 'required|in:pending,preparing,ready'
         ]);
         
         $oldStatus = $order->status;
@@ -57,41 +64,75 @@ class KitchenOrderController extends Controller
     
     public function startCooking(Order $order)
     {
-        if ($order->status !== 'pending') {
+        try {
+            if ($order->status !== 'pending') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pesanan sudah dalam proses atau selesai'
+                ], 400);
+            }
+
+            $order->status = 'preparing';
+            $order->started_cooking_at = now();
+            
+            if ($order->save()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Pesanan mulai dimasak',
+                    'order_id' => $order->id,
+                    'new_status' => 'preparing'
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menyimpan perubahan status'
+                ], 500);
+            }
+            
+        } catch (\Exception $e) {
+            \Log::error('Error starting cooking: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Pesanan sudah dalam proses atau selesai'
-            ], 400);
+                'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()
+            ], 500);
         }
-        
-        $order->status = 'processing';
-        $order->save();
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Pesanan mulai dimasak'
-        ]);
     }
-    
+
     public function markReady(Order $order)
     {
-        if ($order->status !== 'processing') {
+        try {
+            if ($order->status !== 'preparing') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pesanan belum dalam proses memasak'
+                ], 400);
+            }
+
+            $order->status = 'ready';
+            $order->ready_at = now();
+            
+            if ($order->save()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Pesanan siap disajikan',
+                    'order_id' => $order->id,
+                    'new_status' => 'ready'
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menyimpan perubahan status'
+                ], 500);
+            }
+            
+        } catch (\Exception $e) {
+            \Log::error('Error marking ready: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Pesanan belum dalam proses memasak'
-            ], 400);
+                'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()
+            ], 500);
         }
-        
-        $order->status = 'ready';
-        $order->save();
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Pesanan siap disajikan'
-        ]);
-    }
-    
-    public function getOrderItems(Order $order)
+    }    public function getOrderItems(Order $order)
     {
         $items = $order->orderItems()->with('menuItem')->get();
         

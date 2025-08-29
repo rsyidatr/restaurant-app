@@ -1,296 +1,323 @@
 @extends('layouts.kitchen_simple')
 
-@section('title', 'Ketersediaan Menu')
+@section('title', 'Kelola Menu')
 
 @section('content')
 <div class="space-y-6">
     <!-- Header -->
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="bg-white rounded-lg shadow-sm border p-6">
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">Ketersediaan Menu</h1>
-                <p class="text-gray-600 mt-1">Kelola status ketersediaan setiap menu</p>
+                <h1 class="text-2xl font-bold text-gray-900">Kelola Ketersediaan Menu</h1>
+                <p class="text-gray-600 mt-1">Atur ketersediaan item menu secara real-time</p>
             </div>
-            <div class="bg-orange-100 p-3 rounded-full">
-                <i class="fas fa-utensils text-orange-600 text-2xl"></i>
-            </div>
-        </div>
-    </div>
-
-    <!-- Filters -->
-    <div class="bg-white rounded-lg shadow p-6">
-        <form method="GET" action="{{ route('kitchen.menu.index') }}" class="flex flex-wrap gap-4 items-end">
-            <!-- Category Filter -->
-            <div class="flex-1 min-w-48">
-                <label for="category" class="block text-sm font-medium text-gray-700 mb-2">Kategori</label>
-                <select name="category" id="category" 
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500">
-                    <option value="">Semua Kategori</option>
-                    @foreach($categories as $category)
-                        <option value="{{ $category->id }}" 
-                                {{ request('category') == $category->id ? 'selected' : '' }}>
-                            {{ $category->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <!-- Availability Filter -->
-            <div class="flex-1 min-w-48">
-                <label for="availability" class="block text-sm font-medium text-gray-700 mb-2">Status Ketersediaan</label>
-                <select name="availability" id="availability" 
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500">
-                    <option value="">Semua Status</option>
-                    <option value="available" {{ request('availability') == 'available' ? 'selected' : '' }}>Tersedia</option>
-                    <option value="unavailable" {{ request('availability') == 'unavailable' ? 'selected' : '' }}>Tidak Tersedia</option>
-                </select>
-            </div>
-
-            <!-- Filter Button -->
-            <div>
-                <button type="submit" 
-                        class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-md transition-colors">
-                    <i class="fas fa-filter mr-2"></i>Filter
+            <div class="flex items-center space-x-3">
+                <button onclick="refreshAvailability()" 
+                        class="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-all flex items-center space-x-2"
+                        title="Refresh Data">
+                    <i class="fas fa-sync-alt"></i>
+                    <span class="hidden md:inline">Refresh</span>
                 </button>
-            </div>
-
-            <!-- Clear Filter -->
-            <div>
-                <a href="{{ route('kitchen.menu.index') }}" 
-                   class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md transition-colors">
-                    <i class="fas fa-times mr-2"></i>Reset
-                </a>
-            </div>
-        </form>
-    </div>
-
-    <!-- Bulk Actions -->
-    <div class="bg-white rounded-lg shadow p-6">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-semibold text-gray-900">Aksi Massal</h2>
-            <div class="text-sm text-gray-500">
-                <span id="selectedCount">0</span> item dipilih
-            </div>
-        </div>
-        <div class="flex gap-3">
-            <button onclick="bulkUpdateAvailability(true)" 
-                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors disabled:opacity-50" 
-                    id="makeAvailableBtn" disabled>
-                <i class="fas fa-check mr-2"></i>Tandai Tersedia
-            </button>
-            <button onclick="bulkUpdateAvailability(false)" 
-                    class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors disabled:opacity-50" 
-                    id="makeUnavailableBtn" disabled>
-                <i class="fas fa-times mr-2"></i>Tandai Tidak Tersedia
-            </button>
-        </div>
-    </div>
-
-    <!-- Menu Items -->
-    <div class="bg-white rounded-lg shadow">
-        <div class="p-6 border-b border-gray-200">
-            <div class="flex items-center justify-between">
-                <h2 class="text-lg font-semibold text-gray-900">Daftar Menu</h2>
-                <div class="flex items-center space-x-3">
-                    <input type="checkbox" id="selectAll" 
-                           class="rounded border-gray-300 text-orange-600 focus:ring-orange-500">
-                    <label for="selectAll" class="text-sm text-gray-700">Pilih Semua</label>
+                <div class="text-gray-400">
+                    <i class="fas fa-utensils text-2xl"></i>
                 </div>
             </div>
         </div>
-        
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            <input type="checkbox" id="selectAllHeader" 
-                                   class="rounded border-gray-300 text-orange-600 focus:ring-orange-500">
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Menu</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Harga</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    @forelse($menuItems as $item)
-                    <tr class="hover:bg-gray-50" id="row-{{ $item->id }}">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <input type="checkbox" name="selected_items[]" value="{{ $item->id }}" 
-                                   class="item-checkbox rounded border-gray-300 text-orange-600 focus:ring-orange-500">
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                @if($item->image_url)
-                                    <img class="h-10 w-10 rounded-full object-cover" 
-                                         src="{{ asset('storage/' . $item->image_url) }}" 
-                                         alt="{{ $item->name }}">
-                                @else
-                                    <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                        <i class="fas fa-utensils text-gray-400"></i>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow">
+            <div class="flex items-center">
+                <div class="text-gray-400 mr-4">
+                    <i class="fas fa-check text-2xl"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Tersedia</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ $availableCount ?? 0 }}</p>
+                    <p class="text-xs text-gray-500">Menu aktif</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow">
+            <div class="flex items-center">
+                <div class="text-gray-400 mr-4">
+                    <i class="fas fa-times text-2xl"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Tidak Tersedia</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ $unavailableCount ?? 0 }}</p>
+                    @if(($unavailableCount ?? 0) > 0)
+                        <p class="text-xs text-orange-600">Perlu perhatian</p>
+                    @else
+                        <p class="text-xs text-gray-500">Semua tersedia</p>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow">
+            <div class="flex items-center">
+                <div class="text-gray-400 mr-4">
+                    <i class="fas fa-list text-2xl"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Menu</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ $totalCount ?? 0 }}</p>
+                    <p class="text-xs text-gray-500">Item menu</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow">
+            <div class="flex items-center">
+                <div class="text-gray-400 mr-4">
+                    <i class="fas fa-tags text-2xl"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Kategori</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ $categoriesCount ?? 0 }}</p>
+                    <p class="text-xs text-gray-500">Kategori menu</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Menu Items List -->
+    <div id="menu-container">
+        @if(isset($menuItems) && $menuItems->count() > 0)
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <!-- Table Header -->
+                <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                    <div class="flex items-center">
+                        <h3 class="text-sm font-medium text-gray-700">Daftar Menu</h3>
+                    </div>
+                </div>
+
+                <!-- Table Content -->
+                <div class="divide-y divide-gray-200">
+                    @foreach($menuItems as $item)
+                    @php
+                        $isAvailable = $item->is_available;
+                    @endphp
+                    <div class="menu-item px-6 py-4 hover:bg-gray-50 transition-colors duration-200" 
+                         data-item-id="{{ $item->id }}">
+                        <div class="flex items-center justify-between">
+                            <!-- Left Section: Image and Info -->
+                            <div class="flex items-center space-x-4 flex-1">
+                                <!-- Image -->
+                                <div class="flex-shrink-0">
+                                    @if($item->image)
+                                        <img src="{{ asset('storage/' . $item->image) }}" 
+                                             alt="{{ $item->name }}"
+                                             class="w-16 h-16 object-cover rounded-lg">
+                                    @else
+                                        <div class="w-16 h-16 border border-gray-300 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-utensils text-gray-400 text-xl"></i>
+                                        </div>
+                                    @endif
+                                </div>
+                                
+                                <!-- Menu Info -->
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold text-gray-900 text-lg">{{ $item->name }}</h3>
+                                            <p class="text-sm text-gray-600 mt-1">{{ $item->category->name ?? 'Tanpa Kategori' }}</p>
+                                            @if($item->description)
+                                                <p class="text-sm text-gray-500 mt-2 line-clamp-1">{{ $item->description }}</p>
+                                            @endif
+                                        </div>
+                                        <div class="text-right ml-4">
+                                            <p class="text-lg font-semibold text-orange-600">
+                                                Rp {{ number_format($item->price, 0, ',', '.') }}
+                                            </p>
+                                        </div>
                                     </div>
-                                @endif
-                                <div class="ml-4">
-                                    <div class="text-sm font-medium text-gray-900">{{ $item->name }}</div>
-                                    <div class="text-sm text-gray-500">{{ Str::limit($item->description, 50) }}</div>
                                 </div>
                             </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
-                                {{ $item->category->name }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-gray-900">Rp {{ number_format($item->price, 0, ',', '.') }}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <button onclick="toggleAvailability({{ $item->id }})" 
-                                    class="inline-flex px-3 py-1 text-xs font-medium rounded-full transition-colors
-                                           {{ $item->is_available 
-                                              ? 'bg-green-100 text-green-800 hover:bg-green-200' 
-                                              : 'bg-red-100 text-red-800 hover:bg-red-200' }}" 
-                                    id="status-{{ $item->id }}">
-                                <i class="fas {{ $item->is_available ? 'fa-check' : 'fa-times' }} mr-1"></i>
-                                {{ $item->is_available ? 'Tersedia' : 'Tidak Tersedia' }}
-                            </button>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <a href="{{ route('kitchen.menu.show', $item) }}" 
-                               class="text-orange-600 hover:text-orange-900 mr-3">
-                                <i class="fas fa-eye mr-1"></i>Detail
-                            </a>
-                            <button onclick="toggleAvailability({{ $item->id }})" 
-                                    class="text-gray-600 hover:text-gray-900">
-                                <i class="fas fa-toggle-on mr-1"></i>Toggle
-                            </button>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="6" class="px-6 py-12 text-center">
-                            <div class="text-gray-500">
-                                <i class="fas fa-utensils text-gray-300 text-4xl mb-4"></i>
-                                <p>Tidak ada item menu yang ditemukan.</p>
+
+                            <!-- Right Section: Status and Toggle -->
+                            <div class="flex items-center space-x-4 ml-6">
+                                <!-- Availability Status -->
+                                <div class="text-center">
+                                    <span class="availability-badge inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border
+                                        {{ $isAvailable ? 'border-green-300 bg-green-50 text-green-700' : 'border-red-300 bg-red-50 text-red-700' }}">
+                                        <i class="fas fa-{{ $isAvailable ? 'check' : 'times' }} mr-2"></i>
+                                        {{ $isAvailable ? 'Tersedia' : 'Habis' }}
+                                    </span>
+                                </div>
+
+                                <!-- Availability Toggle Switch -->
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" 
+                                           class="sr-only peer availability-toggle" 
+                                           data-item-id="{{ $item->id }}"
+                                           {{ $isAvailable ? 'checked' : '' }}
+                                           onchange="quickToggle({{ $item->id }}, this.checked)">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-600"></div>
+                                </label>
                             </div>
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        
-        @if($menuItems->hasPages())
-        <div class="px-6 py-4 border-t border-gray-200">
-            {{ $menuItems->links() }}
-        </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            @if($menuItems->hasPages())
+                <div class="bg-white rounded-xl shadow-lg p-6 mt-6">
+                    {{ $menuItems->links() }}
+                </div>
+            @endif
+        @else
+            <!-- Empty State -->
+            <div class="bg-white rounded-xl shadow-lg p-12 text-center">
+                <div class="text-gray-400 mb-4">
+                    <i class="fas fa-utensils text-6xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Tidak Ada Menu</h3>
+                <p class="text-gray-600 mb-6">
+                    @if(request('availability'))
+                        Tidak ada menu dengan status "{{ request('availability') }}" saat ini.
+                    @else
+                        Belum ada item menu yang tersedia.
+                    @endif
+                </p>
+                @if(request('availability'))
+                    <a href="{{ route('kitchen.menu.index') }}" 
+                       class="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
+                        <i class="fas fa-list mr-2"></i>
+                        Lihat Semua Menu
+                    </a>
+                @endif
+            </div>
         @endif
     </div>
 </div>
 
-@push('scripts')
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl p-8 text-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+        <p class="text-gray-600">Memproses perubahan...</p>
+    </div>
+</div>
+
+<style>
+.bulk-btn {
+    @apply w-10 h-10 rounded-lg flex items-center justify-center font-medium transition-all border;
+}
+
+.bulk-btn:disabled {
+    @apply opacity-50 cursor-not-allowed;
+}
+
+.menu-card {
+    transition: all 0.3s ease;
+}
+
+.menu-card:hover {
+    transform: translateY(-2px);
+}
+
+.availability-badge {
+    backdrop-filter: blur(10px);
+}
+
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+</style>
+
 <script>
-    let selectedItems = [];
+function refreshAvailability() {
+    showInfo('Memperbarui data ketersediaan menu...');
+    setTimeout(() => {
+        location.reload();
+    }, 500);
+}
 
-    // Select all functionality
-    document.getElementById('selectAll').addEventListener('change', function() {
-        const checkboxes = document.querySelectorAll('.item-checkbox');
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = this.checked;
-        });
-        updateSelectedItems();
-    });
-
-    document.getElementById('selectAllHeader').addEventListener('change', function() {
-        document.getElementById('selectAll').checked = this.checked;
-        document.getElementById('selectAll').dispatchEvent(new Event('change'));
-    });
-
-    // Individual checkbox functionality
-    document.querySelectorAll('.item-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', updateSelectedItems);
-    });
-
-    function updateSelectedItems() {
-        const checkboxes = document.querySelectorAll('.item-checkbox:checked');
-        selectedItems = Array.from(checkboxes).map(cb => cb.value);
-        
-        document.getElementById('selectedCount').textContent = selectedItems.length;
-        
-        const bulkButtons = ['makeAvailableBtn', 'makeUnavailableBtn'];
-        bulkButtons.forEach(btnId => {
-            document.getElementById(btnId).disabled = selectedItems.length === 0;
-        });
-    }
-
-    function toggleAvailability(menuId) {
-        fetch(`/kitchen/menu/${menuId}/toggle-availability`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            }
+function quickToggle(itemId, isAvailable) {
+    const processingId = showInfo('Memperbarui ketersediaan menu...', false);
+    
+    fetch(`/kitchen/menu/${itemId}/toggle-availability`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({
+            is_available: isAvailable
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast(data.message, 'success');
-                
-                // Update status button
-                const statusBtn = document.getElementById(`status-${menuId}`);
-                if (data.is_available) {
-                    statusBtn.className = 'inline-flex px-3 py-1 text-xs font-medium rounded-full transition-colors bg-green-100 text-green-800 hover:bg-green-200';
-                    statusBtn.innerHTML = '<i class="fas fa-check mr-1"></i>Tersedia';
-                } else {
-                    statusBtn.className = 'inline-flex px-3 py-1 text-xs font-medium rounded-full transition-colors bg-red-100 text-red-800 hover:bg-red-200';
-                    statusBtn.innerHTML = '<i class="fas fa-times mr-1"></i>Tidak Tersedia';
-                }
-            } else {
-                showToast(data.message, 'error');
+    })
+    .then(response => response.json())
+    .then(data => {
+        notificationManager.hide(processingId);
+        if (data.success) {
+            showSuccess(data.message);
+            
+            // Update UI with actual value from server response
+            const card = document.querySelector(`[data-item-id="${itemId}"]`);
+            if (card) {
+                updateCardAvailability(card, data.is_available);
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showToast('Terjadi kesalahan', 'error');
-        });
-    }
-
-    function bulkUpdateAvailability(isAvailable) {
-        if (selectedItems.length === 0) {
-            showToast('Pilih minimal satu item menu', 'error');
-            return;
+            
+            // Update toggle state to match server response
+            const toggle = document.querySelector(`[data-item-id="${itemId}"]`);
+            if (toggle) {
+                toggle.checked = data.is_available;
+            }
+        } else {
+            showError(data.message);
+            // Revert toggle state
+            const toggle = document.querySelector(`[data-item-id="${itemId}"]`);
+            if (toggle) {
+                toggle.checked = !isAvailable;
+            }
         }
-
-        const action = isAvailable ? 'tersedia' : 'tidak tersedia';
-        if (confirm(`Tandai ${selectedItems.length} item menu sebagai ${action}?`)) {
-            fetch('/kitchen/menu/bulk-update', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({
-                    menu_ids: selectedItems,
-                    availability: isAvailable
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showToast(data.message, 'success');
-                    location.reload();
-                } else {
-                    showToast(data.message, 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('Terjadi kesalahan', 'error');
-            });
+    })
+    .catch(error => {
+        notificationManager.hide(processingId);
+        console.error('Error:', error);
+        showError('Terjadi kesalahan saat memperbarui ketersediaan menu');
+        
+        // Revert toggle state to original
+        const toggle = document.querySelector(`[data-item-id="${itemId}"]`);
+        if (toggle) {
+            toggle.checked = !isAvailable;
         }
+    });
+}
+
+function updateCardAvailability(card, isAvailable) {
+    const badge = card.querySelector('.availability-badge');
+    
+    if (badge) {
+        badge.className = `availability-badge inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${
+            isAvailable ? 'border-green-300 bg-green-50 text-green-700' : 'border-red-300 bg-red-50 text-red-700'
+        }`;
+        badge.innerHTML = `<i class="fas fa-${isAvailable ? 'check' : 'times'} mr-2"></i>${
+            isAvailable ? 'Tersedia' : 'Habis'
+        }`;
     }
+    
+    // Update toggle switch state
+    const toggle = card.querySelector('.availability-toggle');
+    if (toggle) {
+        toggle.checked = isAvailable;
+    }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    // Page initialized
+});
 </script>
-@endpush
 @endsection
